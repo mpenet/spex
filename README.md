@@ -1,7 +1,7 @@
 # spex
 <!-- [![Build Status](https://secure.travis-ci.org/mpenet/spex.png?branch=master)](http://travis-ci.org/mpenet/spex) -->
 
-Small utility library to use with `clojure.spec`.
+Small utility/extension library for `clojure.spec`.
 
 ## Installation
 
