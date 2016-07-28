@@ -37,13 +37,6 @@
                       (gen/vector (gen/choose 0 255) 4)))]
     (s/spec ip? :gen gen)))
 
-(s/def ::uri (letfn [(uri? [x]
-                       )]
-
-               )
-)
-
-
 (s/def ::email
   ;; rx from
   ;; https://github.com/android/platform_frameworks_base/blob/master/core/java/android/util/Patterns.java
@@ -54,9 +47,6 @@
                                   "\\."
                                   "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25}"
                                   ")+"))]
-    (letfn [(email? [x]
-              (re-matches email-rx x))
+    (letfn [(email? [x] (re-matches email-rx x))
             (gen [] (gen'/string-from-regex email-rx))]
       (s/spec email? :gen gen))))
-
-;; (s/exercise ::email )
