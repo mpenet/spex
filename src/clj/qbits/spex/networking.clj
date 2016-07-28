@@ -2,7 +2,8 @@
   (:require
    [clojure.string :as str]
    [clojure.test.check.generators :as gen]
-   [clojure.spec :as s]))
+   [clojure.spec :as s]
+   [com.gfredericks.test.chuck.generators :as gen']))
 
 (s/def ::port (s/and nat-int? #(s/int-in-range? 1 65535 %)))
 
@@ -17,6 +18,10 @@
                        1 10)))]
     (s/spec hostname? :gen gen)))
 
+
+;; could also try to lift some rx from
+;; https://github.com/android/platform_frameworks_base/blob/master/core/java/android/util/Patterns.java
+;; and apply some test.chuck magic on it
 (s/def ::ip
   (letfn [(ip? [x]
             (let [segments (str/split x #"\.")]
@@ -31,3 +36,27 @@
             (gen/fmap #(str/join "." %)
                       (gen/vector (gen/choose 0 255) 4)))]
     (s/spec ip? :gen gen)))
+
+(s/def ::uri (letfn [(uri? [x]
+                       )]
+
+               )
+)
+
+
+(s/def ::email
+  ;; rx from
+  ;; https://github.com/android/platform_frameworks_base/blob/master/core/java/android/util/Patterns.java
+  (let [email-rx (re-pattern (str "[a-zA-Z0-9\\+\\.\\_\\%\\-\\+]{1,256}"
+                                  "\\@"
+                                  "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,64}"
+                                  "("
+                                  "\\."
+                                  "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25}"
+                                  ")+"))]
+    (letfn [(email? [x]
+              (re-matches email-rx x))
+            (gen [] (gen'/string-from-regex email-rx))]
+      (s/spec email? :gen gen))))
+
+;; (s/exercise ::email )
