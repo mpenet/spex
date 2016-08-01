@@ -13,3 +13,10 @@
   [n a]
   (create-ns n)
   (alias a n))
+
+(defmacro try-or-invalid
+  [& body]
+  `(try
+     ~@body
+     (catch java.lang.Exception e#
+       :clojure.spec/invalid)))
