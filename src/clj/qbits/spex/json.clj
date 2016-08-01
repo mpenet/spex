@@ -1,8 +1,7 @@
 (ns qbits.spex.json
   "Validators/Conformers for JSON input data - uses cheshire as type
-  convertion model for now. But this should be open via the JSONCodec
+  convertion model for now. But this should be open via the ICodec
   protocol.
-
   todo: tests!"
   (:require
    [qbits.spex :as x]
@@ -20,7 +19,9 @@
   (string-like? [x])
   (keyword-like? [x])
   (symbol-like? [x])
-  (set-like? [x]))
+  (set-like? [x])
+  (date-like? [x])
+  (uuid-like? [x]))
 
 (extend-protocol ICodec
   Number
@@ -37,6 +38,7 @@
   (double-like? [x] (double x))
   (short-like? [x] (short x))
   (string-like? [x] (str x))
+  (date-like? [x] (java.util.Date. x))
 
   Double
   (string-like? [x] (str x))
@@ -52,6 +54,7 @@
   (float-like? [x] (x/try-or-invalid (Float/parseFloat x)))
   (keyword-like? [x] (keyword x))
   (symbol-like? [x] (symbol x))
+  (uuid-like? [x] (x/try-or-invalid (java.util.UUID/fromString x)))
 
   clojure.lang.IPersistentCollection
   (set-like? [x] (set x))
@@ -68,6 +71,8 @@
   (set-like? [x] :clojure.spec/invalid)
   (keyword-like? [x] :clojure.spec/invalid)
   (symbol-like? [x] :clojure.spec/invalid)
+  (date-like? [x] :clojure.spec/invalid)
+  (uuid-like? [x] :clojure.spec/invalid)
 
   nil
   (integer-like? [x] :clojure.spec/invalid)
@@ -80,7 +85,9 @@
   (string-like? [x] :clojure.spec/invalid)
   (set-like? [x] :clojure.spec/invalid)
   (keyword-like? [x] :clojure.spec/invalid)
-  (symbol-like? [x] :clojure.spec/invalid))
+  (symbol-like? [x] :clojure.spec/invalid)
+  (date-like? [x] :clojure.spec/invalid)
+  (uuid-like? [x] :clojure.spec/invalid))
 
 (def nat-str-gen (gen/one-of [gen/nat (gen/fmap str gen/nat)]))
 
