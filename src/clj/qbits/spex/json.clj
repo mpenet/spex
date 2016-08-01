@@ -1,7 +1,9 @@
 (ns qbits.spex.json
   "Validators/Conformers for JSON input data - uses cheshire as type
   convertion model for now. But this should be open via the JSONCodec
-  protocol."
+  protocol.
+
+  TODO add :gen"
   (:require
    [qbits.spex :as x]
    [clojure.spec :as s]))
@@ -83,10 +85,12 @@
 (s/def ::symbol (s/conformer symbol-like?))
 
 
-;; (s/def ::n ::integer)
+(s/def ::n ::integer)
 ;; (s/def ::s ::string)
 ;; (s/def ::l ::set)
 ;; (s/def ::d (s/keys :opt-un [::n ::s ::l]))
+
+(s/exercise ::integer)
 
 ;; (s/conform ::d {:l []})
 ;; (s/conform (::set) #{})
