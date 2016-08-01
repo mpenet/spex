@@ -1,12 +1,12 @@
 (ns qbits.spex.json
-  "Couple of specs to convert/validate from json->clj"
+  "Validators/Conformers for JSON input data - uses cheshire as type
+  convertion model for now. But this should be open via the JSONCodec
+  protocol."
   (:require
    [qbits.spex :as x]
    [clojure.spec :as s]))
 
-;; we could have a protocol with 1 fn per *-like to make it more "open"
-
-(defprotocol JSONCodec
+(defprotocol ICodec
   (integer-like? [x])
   (float-like? [x])
   (double-like? [x])
@@ -17,9 +17,15 @@
   (string-like? [x])
   (set-like? [x]))
 
-(extend-protocol JSONCodec
+(extend-protocol ICodec
   Number
   (string-like? [x] (str x))
+
+  Double
+  (double-like? [x] x)
+
+  Long
+  (long-like? [x] x)
 
   String
   (string-like? [x] x)
@@ -60,5 +66,5 @@
 ;; (s/def ::l ::set)
 ;; (s/def ::d (s/keys :opt-un [::n ::s ::l]))
 
-;; (s/conform ::d {:n "12345"})
+;; (s/conform ::d {:l []})
 ;; (s/conform ::set [1 2 3])
