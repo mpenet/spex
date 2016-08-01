@@ -49,6 +49,17 @@
   (biginteger-like? [x] :clojure.spec/invalid)
   (bigint-like? [x] :clojure.spec/invalid)
   (string-like? [x] :clojure.spec/invalid)
+  (set-like? [x] :clojure.spec/invalid)
+
+  nil
+  (integer-like? [x] :clojure.spec/invalid)
+  (float-like? [x] :clojure.spec/invalid)
+  (double-like? [x] :clojure.spec/invalid)
+  (long-like? [x] :clojure.spec/invalid)
+  (short-like? [x] :clojure.spec/invalid)
+  (biginteger-like? [x] :clojure.spec/invalid)
+  (bigint-like? [x] :clojure.spec/invalid)
+  (string-like? [x] :clojure.spec/invalid)
   (set-like? [x] :clojure.spec/invalid))
 
 (s/def ::string (s/conformer string-like?))
@@ -67,4 +78,4 @@
 ;; (s/def ::d (s/keys :opt-un [::n ::s ::l]))
 
 ;; (s/conform ::d {:l []})
-;; (s/conform ::set [1 2 3])
+;; (s/conform ::set nil)
