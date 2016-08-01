@@ -6,7 +6,8 @@
   TODO add :gen"
   (:require
    [qbits.spex :as x]
-   [clojure.spec :as s]))
+   [clojure.spec :as s]
+   [clojure.test.check.generators :as gen]))
 
 (defprotocol ICodec
   (integer-like? [x])
@@ -27,9 +28,18 @@
 
   Double
   (double-like? [x] x)
+  (string-like? [x] (str x))
 
   Long
   (long-like? [x] x)
+  (integer-like? [x] (int x))
+  (float-like? [x] (float x))
+  (double-like? [x] (double x))
+  (short-like? [x] (short x))
+  (string-like? [x] (str x))
+
+  Double
+  (string-like? [x] (str x))
 
   String
   (string-like? [x] x)
@@ -72,25 +82,47 @@
   (keyword-like? [x] :clojure.spec/invalid)
   (symbol-like? [x] :clojure.spec/invalid))
 
-(s/def ::string (s/conformer string-like?))
-(s/def ::integer (s/conformer integer-like?))
-(s/def ::float (s/conformer float-like?))
-(s/def ::long (s/conformer long-like?))
-(s/def ::double (s/conformer double-like?))
-(s/def ::short (s/conformer short-like?))
-(s/def ::biginteger (s/conformer biginteger-like?))
-(s/def ::bigint (s/conformer bigint-like?))
-(s/def ::set (s/conformer set-like?))
-(s/def ::keyword (s/conformer keyword-like?))
-(s/def ::symbol (s/conformer symbol-like?))
+(def nat-str-gen (gen/one-of [gen/nat (gen/fmap str gen/nat)]))
+
+(s/def ::string (s/spec (s/conformer string-like?)
+                        :gen (constantly (gen/one-of [gen/string
+                                                      gen/int
+                                                      gen/double]))))
+(s/def ::integer (s/spec (s/conformer integer-like?)
+                         :gen (constantly nat-str-gen)))
+(s/def ::float (s/spec (s/conformer float-like?)
+                       :gen (constantly nat-str-gen)))
+(s/def ::long (s/spec (s/conformer long-like?)
+                      :gen (constantly nat-str-gen)))
+(s/def ::double (s/spec (s/conformer double-like?)
+                        :gen (constantly (one-of [nat-str-gen gen/double]))))
+(s/def ::short (s/spec (s/conformer short-like?)
+                       :gen (constantly nat-str-gen)))
+(s/def ::biginteger (s/spec (s/conformer biginteger-like?)
+                           :gen (constantly nat-str-gen)))
+(s/def ::bigint (s/conformer (s/spec bigint-like?
+                                     :gen (constantly nat-str-gen))))
+(s/def ::set (s/spec (s/conformer set-like?)
+                     :gen (constantly (gen/one-of [(gen/vector gen/any)
+                                                   (gen/list gen/any)
+                                                   (gen/set gen/any)
+                                                   (gen/map gen/any gen/any)]))))
+(s/def ::keyword (s/spec (s/conformer keyword-like?)
+                         :gen (constantly (gen/one-of [gen/string gen/keyword]))))
+(s/def ::symbol (s/spec (s/conformer symbol-like? )
+                        :gen (constantly gen/string)))
 
 
-(s/def ::n ::integer)
+;; (s/def ::n ::integer)
 ;; (s/def ::s ::string)
 ;; (s/def ::l ::set)
 ;; (s/def ::d (s/keys :opt-un [::n ::s ::l]))
 
-(s/exercise ::integer)
+;; (s/exercise ::string)
+;; (s/valid? ::integer a)
+
+(take 3 (s/exercise ::keyword))
+
 
 ;; (s/conform ::d {:l []})
 ;; (s/conform (::set) #{})
