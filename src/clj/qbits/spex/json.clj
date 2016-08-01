@@ -4,60 +4,46 @@
    [qbits.spex :as x]
    [clojure.spec :as s]))
 
-(defn integer-like? [x]
-  (cond
-    (integer? x) x
-    (string? x) (x/try-or-invalid (Integer/parseInt x))
-    :else :clojure.spec/invalid))
+;; we could have a protocol with 1 fn per *-like to make it more "open"
 
-(defn float-like? [x]
-  (cond
-    (float? x) x
-    (string? x) (x/try-or-invalid (Float/parseFloat x))
-    :else :clojure.spec/invalid))
+(defprotocol JSONCodec
+  (integer-like? [x])
+  (float-like? [x])
+  (double-like? [x])
+  (long-like? [x])
+  (short-like? [x])
+  (biginteger-like? [x])
+  (bigint-like? [x])
+  (string-like? [x])
+  (set-like? [x]))
 
-(defn double-like? [x]
-  (cond
-    (double? x) x
-    (string? x) (x/try-or-invalid (Double/parseDouble x))
-    :else :clojure.spec/invalid))
+(extend-protocol JSONCodec
+  Number
+  (string-like? [x] (str x))
 
-(defn long-like? [x]
-  (cond
-    (instance? Long x) x
-    (string? x)
-    (x/try-or-invalid (Long/parseLong x))
-    :else :clojure.spec/invalid))
+  String
+  (string-like? [x] x)
+  (integer-like? [x] (x/try-or-invalid (Integer/parseInt x)))
+  (long-like? [x] (x/try-or-invalid (Long/parseLong x)))
+  (double-like? [x] (x/try-or-invalid (Double/parseDouble x)))
+  (short-like? [x] (x/try-or-invalid (Short/parseShort x)))
+  (bigint-like? [x] (x/try-or-invalid (-> x BigInteger. clojure.lang.BigInt/fromBigInteger)))
+  (biginteger-like? [x] (x/try-or-invalid (BigInteger. x)))
+  (float-like? [x] (x/try-or-invalid (Float/parseFloat x)))
 
-(defn short-like? [x]
-  (cond
-    (instance? Short x) x
-    (string? x)
-    (x/try-or-invalid (Short/parseShort x))
-    :else :clojure.spec/invalid))
+  clojure.lang.IPersistentCollection
+  (set-like? [x] (set x))
 
-(defn biginteger-like? [x]
-  (cond
-    (instance? BigInteger x) x
-    (string? x) (x/try-or-invalid (BigInteger. ^String x))
-    :else :clojure.spec/invalid))
-
-(defn bigint-like? [x]
-  (cond
-    (instance? BigInteger x) x
-    (string? x) (x/try-or-invalid
-                 (clojure.lang.BigInt/fromBigInteger (BigInteger. ^String x)))
-    :else :clojure.spec/invalid))
-
-(defn string-like? [x]
-  ;; what comes in as js string/number can be coerced to clj string
-  (cond (string? x) x
-        (number? x) (str x)
-        :else :clojure.spec/invalid))
-
-(defn set-like? [x]
-  (if (coll? x) (set x)
-      :clojure.spec/invalid))
+  Object
+  (integer-like? [x] :clojure.spec/invalid)
+  (float-like? [x] :clojure.spec/invalid)
+  (double-like? [x] :clojure.spec/invalid)
+  (long-like? [x] :clojure.spec/invalid)
+  (short-like? [x] :clojure.spec/invalid)
+  (biginteger-like? [x] :clojure.spec/invalid)
+  (bigint-like? [x] :clojure.spec/invalid)
+  (string-like? [x] :clojure.spec/invalid)
+  (set-like? [x] :clojure.spec/invalid))
 
 (s/def ::string (s/conformer string-like?))
 (s/def ::integer (s/conformer integer-like?))
