@@ -3,7 +3,7 @@
   convertion model for now. But this should be open via the JSONCodec
   protocol.
 
-  TODO add :gen"
+  todo: tests!"
   (:require
    [qbits.spex :as x]
    [clojure.spec :as s]
@@ -95,7 +95,7 @@
 (s/def ::long (s/spec (s/conformer long-like?)
                       :gen (constantly nat-str-gen)))
 (s/def ::double (s/spec (s/conformer double-like?)
-                        :gen (constantly (one-of [nat-str-gen gen/double]))))
+                        :gen (constantly (gen/one-of [nat-str-gen gen/double]))))
 (s/def ::short (s/spec (s/conformer short-like?)
                        :gen (constantly nat-str-gen)))
 (s/def ::biginteger (s/spec (s/conformer biginteger-like?)
@@ -121,7 +121,7 @@
 ;; (s/exercise ::string)
 ;; (s/valid? ::integer a)
 
-(take 3 (s/exercise ::keyword))
+;; (take 3 (s/exercise ::keyword))
 
 
 ;; (s/conform ::d {:l []})
