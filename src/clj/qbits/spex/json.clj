@@ -13,7 +13,7 @@
   (float-like? [x])
   (double-like? [x])
   (long-like? [x])
-  (short-like? [x])
+  (short-like? [x])q
   (biginteger-like? [x])
   (bigint-like? [x])
   (string-like? [x])
@@ -27,10 +27,6 @@
   Number
   (string-like? [x] (str x))
 
-  Double
-  (double-like? [x] x)
-  (string-like? [x] (str x))
-
   Long
   (long-like? [x] x)
   (integer-like? [x] (int x))
@@ -40,8 +36,24 @@
   (string-like? [x] (str x))
   (date-like? [x] (java.util.Date. x))
 
+  Integer
+  (integer-like? [x] x)
+
+  Float
+  (float-like? [x] x)
+
+  Short
+  (short-like? [x] x)
+
   Double
+  (double-like? [x] x)
   (string-like? [x] (str x))
+
+  BigInteger
+  (biginteger-like? [x] x)
+
+  clojure.lang.BigInt
+  (bigint-like? [x] x)
 
   String
   (string-like? [x] x)
@@ -55,6 +67,18 @@
   (keyword-like? [x] (keyword x))
   (symbol-like? [x] (symbol x))
   (uuid-like? [x] (x/try-or-invalid (java.util.UUID/fromString x)))
+
+  clojure.lang.Keyword
+  (keyword-like? [x] x)
+
+  clojure.lang.Symbol
+  (symbol-like? [x] x)
+
+  java.util.UUID
+  (uuid-like? [x] x)
+
+  java.util.Date
+  (date-like? [x] x)
 
   clojure.lang.IPersistentCollection
   (set-like? [x] (set x))
@@ -116,8 +140,20 @@
                                                    (gen/map gen/any gen/any)]))))
 (s/def ::keyword (s/spec (s/conformer keyword-like?)
                          :gen (constantly (gen/one-of [gen/string gen/keyword]))))
-(s/def ::symbol (s/spec (s/conformer symbol-like? )
-                        :gen (constantly gen/string)))
+(s/def ::symbol (s/spec (s/conformer symbol-like?)
+                        :gen (constantly (gen/one-of [gen/string gen/symbol]))))
+
+(s/def ::date (s/spec (s/conformer date-like?)
+                      :gen (constantly (gen/one-of [gen/pos-int (gen/fmap #(java.util.Date %)
+                                                                          gen/pos-int)]))))
+
+(s/def ::uuid (s/spec (s/conformer uuid-like?)
+                      :gen (constantly (gen/one-of [(gen/fmap str gen/uuid) gen/uuid] ))))
+
+
+
+(gen/sample (gen/fmap #(java.util.Date. %) gen/int))
+;; (s/exercise ::date)
 
 
 ;; (s/def ::n ::integer)
@@ -128,8 +164,10 @@
 ;; (s/exercise ::string)
 ;; (s/valid? ::integer a)
 
-;; (take 3 (s/exercise ::keyword))
+(take 3 (s/exercise ::uuid))
 
 
 ;; (s/conform ::d {:l []})
 ;; (s/conform (::set) #{})
+
+(java.util.UUID/randomUUID)
