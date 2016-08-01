@@ -13,7 +13,7 @@
   (float-like? [x])
   (double-like? [x])
   (long-like? [x])
-  (short-like? [x])q
+  (short-like? [x])
   (biginteger-like? [x])
   (bigint-like? [x])
   (string-like? [x])
@@ -115,44 +115,65 @@
 
 (def nat-str-gen (gen/one-of [gen/nat (gen/fmap str gen/nat)]))
 
-(s/def ::string (s/spec (s/conformer string-like?)
-                        :gen (constantly (gen/one-of [gen/string
-                                                      gen/int
-                                                      gen/double]))))
-(s/def ::integer (s/spec (s/conformer integer-like?)
-                         :gen (constantly nat-str-gen)))
-(s/def ::float (s/spec (s/conformer float-like?)
-                       :gen (constantly nat-str-gen)))
-(s/def ::long (s/spec (s/conformer long-like?)
-                      :gen (constantly nat-str-gen)))
-(s/def ::double (s/spec (s/conformer double-like?)
-                        :gen (constantly (gen/one-of [nat-str-gen gen/double]))))
-(s/def ::short (s/spec (s/conformer short-like?)
-                       :gen (constantly nat-str-gen)))
-(s/def ::biginteger (s/spec (s/conformer biginteger-like?)
-                           :gen (constantly nat-str-gen)))
-(s/def ::bigint (s/conformer (s/spec bigint-like?
-                                     :gen (constantly nat-str-gen))))
-(s/def ::set (s/spec (s/conformer set-like?)
-                     :gen (constantly (gen/one-of [(gen/vector gen/any)
-                                                   (gen/list gen/any)
-                                                   (gen/set gen/any)
-                                                   (gen/map gen/any gen/any)]))))
-(s/def ::keyword (s/spec (s/conformer keyword-like?)
-                         :gen (constantly (gen/one-of [gen/string gen/keyword]))))
-(s/def ::symbol (s/spec (s/conformer symbol-like?)
-                        :gen (constantly (gen/one-of [gen/string gen/symbol]))))
+(s/def ::string
+  (s/spec (s/conformer string-like?)
+          :gen (constantly (gen/one-of [gen/string
+                                        gen/int
+                                        gen/double]))))
+(s/def ::integer
+  (s/spec (s/conformer integer-like?)
+          :gen (constantly (gen/one-of [nat-str-gen gen/int]))))
 
-(s/def ::date (s/spec (s/conformer date-like?)
-                      :gen (constantly (gen/one-of [gen/pos-int (gen/fmap #(java.util.Date %)
-                                                                          gen/pos-int)]))))
+(s/def ::float
+  (s/spec (s/conformer float-like?)
+          :gen (constantly nat-str-gen)))
 
-(s/def ::uuid (s/spec (s/conformer uuid-like?)
-                      :gen (constantly (gen/one-of [(gen/fmap str gen/uuid) gen/uuid] ))))
+(s/def ::long
+  (s/spec (s/conformer long-like?)
+          :gen (constantly nat-str-gen)))
+
+(s/def ::double
+  (s/spec (s/conformer double-like?)
+          :gen (constantly (gen/one-of [nat-str-gen gen/double]))))
+
+(s/def ::short
+  (s/spec (s/conformer short-like?)
+          :gen (constantly nat-str-gen)))
+
+(s/def ::biginteger
+  (s/spec (s/conformer biginteger-like?)
+          :gen (constantly nat-str-gen)))
+
+(s/def ::bigint
+  (s/conformer (s/spec bigint-like?
+                       :gen (constantly nat-str-gen))))
+
+(s/def ::set
+  (s/spec (s/conformer set-like?)
+          :gen (constantly (gen/one-of [(gen/vector gen/any)
+                                        (gen/list gen/any)
+                                        (gen/set gen/any)
+                                        (gen/map gen/any gen/any)]))))
+
+(s/def ::keyword
+  (s/spec (s/conformer keyword-like?)
+          :gen (constantly (gen/one-of [gen/string gen/keyword]))))
+
+(s/def ::symbol
+  (s/spec (s/conformer symbol-like?)
+          :gen (constantly (gen/one-of [gen/string gen/symbol]))))
+
+(s/def ::date
+  (s/spec (s/conformer date-like?)
+          :gen (constantly (gen/one-of [gen/pos-int (gen/fmap #(java.util.Date %)
+                                                              gen/pos-int)]))))
+
+(s/def ::uuid
+  (s/spec (s/conformer uuid-like?)
+          :gen (constantly (gen/one-of [(gen/fmap str gen/uuid) gen/uuid]))))
 
 
 
-(gen/sample (gen/fmap #(java.util.Date. %) gen/int))
 ;; (s/exercise ::date)
 
 
@@ -164,10 +185,8 @@
 ;; (s/exercise ::string)
 ;; (s/valid? ::integer a)
 
-(take 3 (s/exercise ::uuid))
+;; (take 3 (s/exercise ::uuid))
 
 
 ;; (s/conform ::d {:l []})
 ;; (s/conform (::set) #{})
-
-(java.util.UUID/randomUUID)
