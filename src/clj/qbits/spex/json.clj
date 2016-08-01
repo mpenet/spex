@@ -15,6 +15,8 @@
   (biginteger-like? [x])
   (bigint-like? [x])
   (string-like? [x])
+  (keyword-like? [x])
+  (symbol-like? [x])
   (set-like? [x]))
 
 (extend-protocol ICodec
@@ -36,6 +38,8 @@
   (bigint-like? [x] (x/try-or-invalid (-> x BigInteger. clojure.lang.BigInt/fromBigInteger)))
   (biginteger-like? [x] (x/try-or-invalid (BigInteger. x)))
   (float-like? [x] (x/try-or-invalid (Float/parseFloat x)))
+  (keyword-like? [x] (keyword x))
+  (symbol-like? [x] (symbol x))
 
   clojure.lang.IPersistentCollection
   (set-like? [x] (set x))
@@ -50,6 +54,8 @@
   (bigint-like? [x] :clojure.spec/invalid)
   (string-like? [x] :clojure.spec/invalid)
   (set-like? [x] :clojure.spec/invalid)
+  (keyword-like? [x] :clojure.spec/invalid)
+  (symbol-like? [x] :clojure.spec/invalid)
 
   nil
   (integer-like? [x] :clojure.spec/invalid)
@@ -60,7 +66,9 @@
   (biginteger-like? [x] :clojure.spec/invalid)
   (bigint-like? [x] :clojure.spec/invalid)
   (string-like? [x] :clojure.spec/invalid)
-  (set-like? [x] :clojure.spec/invalid))
+  (set-like? [x] :clojure.spec/invalid)
+  (keyword-like? [x] :clojure.spec/invalid)
+  (symbol-like? [x] :clojure.spec/invalid))
 
 (s/def ::string (s/conformer string-like?))
 (s/def ::integer (s/conformer integer-like?))
@@ -78,4 +86,4 @@
 ;; (s/def ::d (s/keys :opt-un [::n ::s ::l]))
 
 ;; (s/conform ::d {:l []})
-;; (s/conform ::set nil)
+;; (s/conform (::set) #{})
