@@ -79,6 +79,9 @@
 (s/def ::biginteger (s/conformer biginteger-like?))
 (s/def ::bigint (s/conformer bigint-like?))
 (s/def ::set (s/conformer set-like?))
+(s/def ::keyword (s/conformer keyword-like?))
+(s/def ::symbol (s/conformer symbol-like?))
+
 
 ;; (s/def ::n ::integer)
 ;; (s/def ::s ::string)
