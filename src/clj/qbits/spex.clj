@@ -1,4 +1,5 @@
-(ns qbits.spex)
+(ns qbits.spex
+  (:require [clojure.spec :as s]))
 
 (defn instance-of
   "Partially applied version of clojure.core/instance?"
@@ -20,3 +21,7 @@
      ~@body
      (catch java.lang.Exception e#
        :clojure.spec/invalid)))
+
+(defn default [spec default]
+  (s/conformer
+   #(-> spec s/nilable (s/conform %) (or default))))

@@ -6,6 +6,7 @@
   (:require
    [qbits.spex :as x]
    [clojure.spec :as s]
+   [clojure.string :as str]
    [clojure.test.check.generators :as gen])
   (:import (java.util.Base64$Decoder)))
 
@@ -27,9 +28,13 @@
   (binary-like [x])
   (bool-like [x]))
 
+;; walkaround alpha13 conformer bug
+(def invalid :clojure.spec/invalid)
+
 (extend-protocol ICodec
   Number
   (string-like [x] (str x))
+  (bool-like [x] (= x 1))
 
   Long
   (long-like [x] x)
@@ -94,40 +99,40 @@
   (set-like [x] (set x))
 
   Object
-  (integer-like [x] :clojure.spec/invalid)
-  (float-like [x] :clojure.spec/invalid)
-  (double-like [x] :clojure.spec/invalid)
-  (long-like [x] :clojure.spec/invalid)
-  (short-like [x] :clojure.spec/invalid)
-  (biginteger-like [x] :clojure.spec/invalid)
-  (bigint-like [x] :clojure.spec/invalid)
-  (string-like [x] :clojure.spec/invalid)
-  (set-like [x] :clojure.spec/invalid)
-  (keyword-like [x] :clojure.spec/invalid)
-  (symbol-like [x] :clojure.spec/invalid)
-  (date-like [x] :clojure.spec/invalid)
-  (uuid-like [x] :clojure.spec/invalid)
-  (byte-like [x] :clojure.spec/invalid)
-  (binary-like [x] :clojure.spec/invalid)
-  (bool-like [x] :clojure.spec/invalid)
+  (integer-like [x] invalid)
+  (float-like [x] invalid)
+  (double-like [x] invalid)
+  (long-like [x] invalid)
+  (short-like [x] invalid)
+  (biginteger-like [x] invalid)
+  (bigint-like [x] invalid)
+  (string-like [x] invalid)
+  (set-like [x] invalid)
+  (keyword-like [x] invalid)
+  (symbol-like [x] invalid)
+  (date-like [x] invalid)
+  (uuid-like [x] invalid)
+  (byte-like [x] invalid)
+  (binary-like [x] invalid)
+  (bool-like [x] invalid)
 
   nil
-  (integer-like [x] :clojure.spec/invalid)
-  (float-like [x] :clojure.spec/invalid)
-  (double-like [x] :clojure.spec/invalid)
-  (long-like [x] :clojure.spec/invalid)
-  (short-like [x] :clojure.spec/invalid)
-  (biginteger-like [x] :clojure.spec/invalid)
-  (bigint-like [x] :clojure.spec/invalid)
-  (string-like [x] :clojure.spec/invalid)
-  (set-like [x] :clojure.spec/invalid)
-  (keyword-like [x] :clojure.spec/invalid)
-  (symbol-like [x] :clojure.spec/invalid)
-  (date-like [x] :clojure.spec/invalid)
-  (uuid-like [x] :clojure.spec/invalid)
-  (byte-like [x] :clojure.spec/invalid)
-  (binary-like [x] :clojure.spec/invalid)
-  (bool-like [x] :clojure.spec/invalid))
+  (integer-like [x] invalid)
+  (float-like [x] invalid)
+  (double-like [x] invalid)
+  (long-like [x] invalid)
+  (short-like [x] invalid)
+  (biginteger-like [x] invalid)
+  (bigint-like [x] invalid)
+  (string-like [x] invalid)
+  (set-like [x] invalid)
+  (keyword-like [x] invalid)
+  (symbol-like [x] invalid)
+  (date-like [x] invalid)
+  (uuid-like [x] invalid)
+  (byte-like [x] invalid)
+  (binary-like [x] invalid)
+  (bool-like [x] invalid))
 
 (def nat-str-gen (gen/one-of [gen/nat (gen/fmap str gen/nat)]))
 
@@ -191,20 +196,11 @@
 (s/def ::bool (s/spec (s/conformer bool-like)
                       :gen (constantly (gen/one-of [gen/string gen/boolean]))))
 
+;; some extra stuff (arguably useful)
 
-;; (s/exercise ::date)
-
-
-;; (s/def ::n ::integer)
-;; (s/def ::s ::string)
-;; (s/def ::l ::set)
-;; (s/def ::d (s/keys :opt-un [::n ::s ::l]))
-
-;; (s/exercise ::string)
-;; (s/valid? ::integer a)
-
-;; (take 3 (s/exercise ::uuid))
-
-
-;; (s/conform ::d {:l []})
-;; (s/conform (::set) #{})
+(s/def ::comma-separated-string
+  (s/spec
+   (s/conformer (fn [x] (and (string? x)
+                             (when (not-empty x)
+                               (some->> (str/split x #"\s*,\s*")
+                                        (into #{} (remove #(= % ""))))))))))
