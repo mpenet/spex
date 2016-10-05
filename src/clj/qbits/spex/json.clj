@@ -196,11 +196,17 @@
 (s/def ::bool (s/spec (s/conformer bool-like)
                       :gen (constantly (gen/one-of [gen/string gen/boolean]))))
 
-;; some extra stuff (arguably useful)
-
+;; some extra stuff (arguably useful, mostly for ring.params)
 (s/def ::comma-separated-string
   (s/spec
    (s/conformer (fn [x] (and (string? x)
                              (when (not-empty x)
                                (some->> (str/split x #"\s*,\s*")
                                         (into #{} (remove #(= % ""))))))))))
+
+(s/def ::space-separated-string
+  (s/spec
+   (s/conformer
+    (fn [x] (and (string? x)
+                 (when (not-empty x)
+                   (set (re-seq #"\S+" x))))))))
