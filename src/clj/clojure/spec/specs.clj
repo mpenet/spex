@@ -110,7 +110,14 @@
 
 (def conform (partial s/conform ::spec))
 
-    ;; (s/conform ::spec (s/form (s/or :a int? :b even?)))
+(defn deep-conform [spec]
+  (clojure.walk/postwalk
+   (fn [form]
+     (if (and (vector? form)
+              (= :spec-key (first form)))
+       (conform (s/form (second form)))
+       form))
+   (conform spec)))
 
 #_(do
     (s/conform ::spec (s/form (s/spec int?)))

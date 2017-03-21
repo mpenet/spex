@@ -106,75 +106,76 @@
 
 (def nat-str-gen (gen/one-of [gen/nat (gen/fmap str gen/nat)]))
 
-(def string?
+(s/def ::string
   (s/spec (conformer json->string)
           :gen (constantly (gen/one-of [gen/string
                                         gen/int
                                         gen/double]))))
-(def integer?
+(s/def ::integer
   (s/spec (conformer json->integer)
           :gen (constantly (gen/one-of [nat-str-gen gen/int]))))
 
-(def float?
+(s/def ::float
   (s/spec (conformer json->float)
           :gen (constantly nat-str-gen)))
 
-(def long?
+(s/def ::long
   (s/spec (conformer json->long)
           :gen (constantly nat-str-gen)))
 
-(def double?
+(s/def ::double
   (s/spec (conformer json->double)
           :gen (constantly (gen/one-of [nat-str-gen gen/double]))))
 
-(def short?
+(s/def ::short
   (s/spec (conformer json->short)
           :gen (constantly nat-str-gen)))
 
-(def biginteger?
+(s/def ::biginteger
   (s/spec (conformer json->biginteger)
           :gen (constantly nat-str-gen)))
 
-(def bigint?
+(s/def ::bigint
   (s/spec (conformer json->bigint)
           :gen (constantly nat-str-gen)))
 
-(def set?
+(s/def ::set
   (s/spec (conformer json->set)
           :gen (constantly (gen/one-of [(gen/vector gen/any)
                                         (gen/list gen/any)
                                         (gen/set gen/any)
                                         (gen/map gen/any gen/any)]))))
 
-(def keyword?
+(s/def ::keyword
   (s/spec (conformer json->keyword)
           :gen (constantly (gen/one-of [gen/string gen/keyword]))))
 
-(def symbol?
+(s/def ::symbol
   (s/spec (conformer json->symbol)
           :gen (constantly (gen/one-of [gen/string gen/symbol]))))
 
-(def date?
+(s/def ::date
   (s/spec (conformer json->date)
           :gen (constantly (gen/one-of [gen/pos-int (gen/fmap #(java.util.Date %)
                                                               gen/pos-int)]))))
 
-(def uuid?
+(s/def ::uuid
   (s/spec (conformer json->uuid)
           :gen (constantly (gen/one-of [(gen/fmap str gen/uuid) gen/uuid]))))
 
-(def boolean? (s/spec (conformer json->boolean)
-                      :gen (constantly (gen/one-of [gen/string gen/boolean]))))
+(s/def ::boolean
+  (s/spec (conformer json->boolean)
+          :gen (constantly (gen/one-of [gen/string gen/boolean]))))
 
 ;; some extra stuff (arguably useful, mostly for ring.params)
-(def comma-separated-string?
+(s/def ::comma-separated-string
   (s/spec
    (conformer (fn [x] (and (string? x)
                            (when (not-empty x)
                              (some->> (str/split x #"\s*,\s*")
                                       (into #{} (remove #(= % ""))))))))))
 
-(def space-separated-string?
+(s/def ::space-separated-string
   (s/spec
    (conformer
     (fn [x] (and (string? x)
