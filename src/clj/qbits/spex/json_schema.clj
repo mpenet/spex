@@ -28,13 +28,14 @@
          ::json/date {:type :string :format :date-time}
          ::json/uuid {:type :string :format :uuid}}))
 
+
 (defn add-meta! [k m]
   (swap! registry update k merge m))
 
 (defmacro def+ [k v & [meta]]
-  `(do
+  `(let [m# ~meta]
      (s/def ~k ~v)
-     (add-meta! ~k ~meta)))
+     (when m# (add-meta! ~k m#))))
 
 (def+ ::age ::json/long {:description "foo"})
 (def+ ::name ::json/long {:description "foo"})
@@ -53,8 +54,8 @@
               :tup (s/tuple ::json/string ::json/string)
               :map (s/map-of ::json/string ::json/integer)
               :map (s/map-of string? number?)
-              :coll (s/coll-of string?)
-              :coll (s/coll-of ::person)
+              :coll1 (s/coll-of string?)
+              :coll2 (s/coll-of ::person)
               :str string?))
 
 (declare form->json-schema)
@@ -67,75 +68,100 @@
 
 (defn emit-properties
   [form]
-  (let [keys (map second (concat (:req form) (:req-un form)))]
+  (let [keys (map second
+                  (concat (:req form)
+                          (:req-un form)))]
     (reduce
      (fn [m k]
        (assoc m (name k) (get @registry k)))
      {}
      keys)))
 
-(defn emit-pred [pred]
-  (case pred
-    clojure.core/string?  {:type :string}
-    clojure.core/boolean? {:type :boolean}
-    clojure.core/number? {:type :number}))
+(defmulti emit-pred identity)
+(defmethod emit-pred 'clojure.core/string?
+  [_] {:type :string})
 
-(defn emit-spec
-  [[type spec]]
-  (case type
-    :pred
-    (emit-pred spec)
-    :spec-key
-    (or (@registry spec)
-        (form->json-schema (clojure.spec.specs/conform (s/form spec))))))
+(defmethod emit-pred 'clojure.core/boolean?
+  [_] {:type :boolean})
 
-(defn emit-form [{:keys [s args] :as form}]
-  (case s
-    (clojure.spec/or clojure.spec/alt)
-    {:anyOf (mapv form->json-schema args)}
+(defmethod emit-pred 'clojure.core/number?
+  [_] {:type :number})
 
-    clojure.spec/and
-    {:allOf (map form->json-schema args)}
 
-    ;; clojure.spec/every
-    ;; {:type :array :items (emit-form args)}
+(defmulti emit-spec (fn [[type spec]] type))
 
-    clojure.spec/*
-    {:type :array
-     :items [(emit-spec args)]}
+(defmethod emit-spec :pred
+  [[_ spec]]
+  (emit-pred spec))
 
-    clojure.spec/+
-    {:type :array
-     :minItems 1
-     :items (emit-spec args)}
+(defmethod emit-spec :spec-key
+  [[_ spec]]
+  (or (@registry spec)
+      (form->json-schema (clojure.spec.specs/conform (s/form spec)))))
 
-    clojure.spec/tuple
-    {:type :array
-     :items (mapv emit-spec args)
-     :minItems (count args)}
+(defmulti emit-form :s)
 
-    clojure.spec/keys
-    (do
-      {:type :object
-       :required (emit-keys args true)
-       :properties (emit-properties args)})
+(defmethod emit-form 'clojure.spec/or
+  [{:keys [args]}]
+  {:anyOf (mapv form->json-schema args)})
 
-    clojure.spec/map-of
-    {:type :object
-     :patternProperties {"*" (-> args :vpred emit-spec)}}
+(defmethod emit-form 'clojure.spec/alt
+  [{:keys [args]}]
+  {:anyOf (mapv form->json-schema args)})
 
-    clojure.spec/coll-of
-    {:allOf (emit-spec (:spec args))}
+(defmethod emit-form 'clojure.spec/and
+  [{:keys [args]}]
+  {:allOf (mapv form->json-schema args)})
 
-    clojure.spec/nilable
-    {:oneOf [{:type :null} (emit-spec args)]}))
+(defmethod emit-form 'clojure.spec/*
+  [{:keys [args]}]
+  {:type :array
+   :items [(emit-spec args)]})
 
-(defn emit-tag [{:keys [tag pred]}]
-  {tag
-   (case (first pred)
-     :pred (emit-pred (second pred))
-     :form (emit-form (second pred))
-     :spec-key (emit-spec pred))})
+(defmethod emit-form 'clojure.spec/+
+  [{:keys [args]}]
+  {:type :array
+   :minItems 1
+   :items (emit-spec args)})
+
+(defmethod emit-form 'clojure.spec/tuple
+  [{:keys [args]}]
+  {:type :array
+   :items (mapv emit-spec args)
+   :minItems (count args)})
+
+(defmethod emit-form 'clojure.spec/keys
+  [{:keys [args]}]
+  {:type :object
+   :required (emit-keys args true)
+   :properties (emit-properties args)})
+
+(defmethod emit-form 'clojure.spec/map-of
+  [{:keys [args]}]
+  {:type :object
+   :patternProperties {"*" (-> args :vpred emit-spec)}})
+
+(defmethod emit-form 'clojure.spec/coll-of
+  [{:keys [args]}]
+  {:allOf (emit-spec (:spec args))})
+
+(defmethod emit-form 'clojure.spec/nilable
+  [{:keys [args]}]
+  {:oneOf [{:type :null} (emit-spec args)]})
+
+(defmulti emit-tag (fn [{:keys [pred]}] (first pred)))
+
+(defmethod emit-tag :pred
+  [{:keys [tag pred]}]
+  (emit-pred (second pred)))
+
+(defmethod emit-tag :form
+  [{:keys [tag pred]}]
+  (emit-form (second pred)))
+
+(defmethod emit-tag :spec-key
+  [{:keys [tag pred]}]
+  (emit-spec pred))
 
 (defn emit-vec [form]
   (case (first form)
