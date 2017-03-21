@@ -52,7 +52,10 @@
               :st (s/* ::json/string)
               :tup (s/tuple ::json/string ::json/string)
               :map (s/map-of ::json/string ::json/integer)
-              :coll (s/coll-of ::person)))
+              :map (s/map-of string? number?)
+              :coll (s/coll-of string?)
+              :coll (s/coll-of ::person)
+              :str string?))
 
 (declare form->json-schema)
 
@@ -71,9 +74,17 @@
      {}
      keys)))
 
+(defn emit-pred [pred]
+  (case pred
+    clojure.core/string?  {:type :string}
+    clojure.core/boolean? {:type :boolean}
+    clojure.core/number? {:type :number}))
+
 (defn emit-spec
   [[type spec]]
   (case type
+    :pred
+    (emit-pred spec)
     :spec-key
     (or (@registry spec)
         (form->json-schema (clojure.spec.specs/conform (s/form spec))))))
@@ -122,6 +133,7 @@
 (defn emit-tag [{:keys [tag pred]}]
   {tag
    (case (first pred)
+     :pred (emit-pred (second pred))
      :form (emit-form (second pred))
      :spec-key (emit-spec pred))})
 
