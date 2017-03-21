@@ -15,35 +15,35 @@
 
 (defmulti spec->json-schema identity)
 
-(defmethod spec->json-schema ::json/string
+(defmethod spec->json-schema ::string
   [_]
   {:type :string})
 
-(defmethod spec->json-schema ::json/integer
+(defmethod spec->json-schema ::integer
   [_]
   {:type :integer :format :int64})
 
-(defmethod spec->json-schema ::json/long
+(defmethod spec->json-schema ::long
   [_]
   {:type :integer :format :int64})
 
-(defmethod spec->json-schema ::json/float
+(defmethod spec->json-schema ::float
   [_]
   {:type :number})
 
-(defmethod spec->json-schema ::json/boolean
+(defmethod spec->json-schema ::boolean
   [_]
   {:type :boolean})
 
-(defmethod spec->json-schema ::json/set
+(defmethod spec->json-schema ::set
   [_]
   {:type :array :uniqueItems true})
 
-(defmethod spec->json-schema ::json/date
+(defmethod spec->json-schema ::date
   [_]
   {:type :string :format :date-time})
 
-(defmethod spec->json-schema ::json/uuid
+(defmethod spec->json-schema ::uuid
   [_]
   {:type :string :format :uuid})
 
@@ -55,16 +55,13 @@
 
 (s/def ::age ::json/long)
 (defmethod spec->json-schema ::age [_]
-  (merge (spec->json-schema ::json/long)
+  (merge (spec->json-schema ::long)
          {:description "bla bla"}))
 
 (s/def ::name ::json/string)
-(derive ::name ::json/string)
+(derive ::name ::string)
 
 (s/def ::person (s/keys :req [::age ::name]))
-
-
-;; (spec->json-schema ::person)
 
 (s/def ::foo (s/or
               :age ::age
