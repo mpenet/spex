@@ -3,6 +3,9 @@
   convertion model for now. But this should be open via the ICodec
   protocol.
   todo: tests!"
+  (:refer-clojure
+   :exclude [string? integer? float? double? keyword? symbol?
+             set? uuid? boolean?])
   (:require
    [qbits.spex :as x]
    [clojure.spec :as s]
@@ -10,203 +13,170 @@
    [clojure.test.check.generators :as gen])
   (:import (java.util.Base64$Decoder)))
 
+
 (defprotocol ICodec
-  (integer-like [x])
-  (float-like [x])
-  (double-like [x])
-  (long-like [x])
-  (short-like [x])
-  (biginteger-like [x])
-  (bigint-like [x])
-  (string-like [x])
-  (keyword-like [x])
-  (symbol-like [x])
-  (set-like [x])
-  (date-like [x])
-  (uuid-like [x])
-  (byte-like [x])
-  (binary-like [x])
-  (bool-like [x]))
+  (json->integer [x])
+  (json->float [x])
+  (json->double [x])
+  (json->long [x])
+  (json->short [x])
+  (json->biginteger [x])
+  (json->bigint [x])
+  (json->string [x])
+  (json->keyword [x])
+  (json->symbol [x])
+  (json->set [x])
+  (json->date [x])
+  (json->uuid [x])
+  (json->byte [x])
+  (json->binary [x])
+  (json->boolean [x]))
 
-;; walkaround alpha13 conformer bug
-(def invalid :clojure.spec/invalid)
+(defn conformer
+  [f]
+  (s/conformer (fn [x] (x/try-or-invalid (f x)))))
 
+;; TODO make this reifiable?
 (extend-protocol ICodec
   Number
-  (string-like [x] (str x))
-  (bool-like [x] (= x 1))
+  (json->string [x] (str x))
+  (json->boolean [x] (= x 1))
 
   Long
-  (long-like [x] x)
-  (integer-like [x] (int x))
-  (float-like [x] (float x))
-  (double-like [x] (double x))
-  (short-like [x] (short x))
-  (string-like [x] (str x))
-  (date-like [x] (java.util.Date. x))
+  (json->long [x] x)
+  (json->integer [x] (int x))
+  (json->float [x] (float x))
+  (json->double [x] (double x))
+  (json->short [x] (short x))
+  (json->string [x] (str x))
+  (json->date [x] (java.util.Date. x))
 
   Integer
-  (integer-like [x] x)
+  (json->integer [x] x)
 
   Float
-  (float-like [x] x)
+  (json->float [x] x)
 
   Short
-  (short-like [x] x)
+  (json->short [x] x)
 
   Double
-  (double-like [x] x)
-  (string-like [x] (str x))
+  (json->double [x] x)
+  (json->string [x] (str x))
 
   BigInteger
-  (biginteger-like [x] x)
+  (json->biginteger [x] x)
 
   clojure.lang.BigInt
-  (bigint-like [x] x)
+  (json->bigint [x] x)
 
   String
-  (string-like [x] x)
-  (integer-like [x] (x/try-or-invalid (Integer/parseInt x)))
-  (long-like [x] (x/try-or-invalid (Long/parseLong x)))
-  (double-like [x] (x/try-or-invalid (Double/parseDouble x)))
-  (short-like [x] (x/try-or-invalid (Short/parseShort x)))
-  (bigint-like [x] (x/try-or-invalid (-> x BigInteger. clojure.lang.BigInt/fromBigInteger)))
-  (biginteger-like [x] (x/try-or-invalid (BigInteger. x)))
-  (float-like [x] (x/try-or-invalid (Float/parseFloat x)))
-  (keyword-like [x] (keyword x))
-  (symbol-like [x] (symbol x))
-  (uuid-like [x] (x/try-or-invalid (java.util.UUID/fromString x)))
-  (byte-like [x] (-> (java.util.Base64/getDecoder) (.decode x)))
-  (binary-like [x] x)
-  (bool-like [x] (x/try-or-invalid (Boolean/parseBoolean x)))
+  (json->string [x] x)
+  (json->integer [x] (Integer/parseInt x))
+  (json->long [x] (Long/parseLong x))
+  (json->double [x] (Double/parseDouble x))
+  (json->short [x] (Short/parseShort x))
+  (json->bigint [x] (-> x BigInteger. clojure.lang.BigInt/fromBigInteger))
+  (json->biginteger [x] (BigInteger. x))
+  (json->float [x] (Float/parseFloat x))
+  (json->keyword [x] (keyword x))
+  (json->symbol [x] (symbol x))
+  (json->uuid [x] (java.util.UUID/fromString x))
+  (json->byte [x] (-> (java.util.Base64/getDecoder) (.decode x)))
+  (json->binary [x] x)
+  (json->boolean [x] (Boolean/parseBoolean x))
 
   Boolean
-  (bool-like [x] x)
+  (json->boolean [x] x)
 
   clojure.lang.Keyword
-  (keyword-like [x] x)
+  (json->keyword [x] x)
 
   clojure.lang.Symbol
-  (symbol-like [x] x)
+  (json->symbol [x] x)
 
   java.util.UUID
-  (uuid-like [x] x)
+  (json->uuid [x] x)
 
   java.util.Date
-  (date-like [x] x)
+  (json->date [x] x)
 
   clojure.lang.IPersistentCollection
-  (set-like [x] (set x))
-
-  Object
-  (integer-like [x] invalid)
-  (float-like [x] invalid)
-  (double-like [x] invalid)
-  (long-like [x] invalid)
-  (short-like [x] invalid)
-  (biginteger-like [x] invalid)
-  (bigint-like [x] invalid)
-  (string-like [x] invalid)
-  (set-like [x] invalid)
-  (keyword-like [x] invalid)
-  (symbol-like [x] invalid)
-  (date-like [x] invalid)
-  (uuid-like [x] invalid)
-  (byte-like [x] invalid)
-  (binary-like [x] invalid)
-  (bool-like [x] invalid)
-
-  nil
-  (integer-like [x] invalid)
-  (float-like [x] invalid)
-  (double-like [x] invalid)
-  (long-like [x] invalid)
-  (short-like [x] invalid)
-  (biginteger-like [x] invalid)
-  (bigint-like [x] invalid)
-  (string-like [x] invalid)
-  (set-like [x] invalid)
-  (keyword-like [x] invalid)
-  (symbol-like [x] invalid)
-  (date-like [x] invalid)
-  (uuid-like [x] invalid)
-  (byte-like [x] invalid)
-  (binary-like [x] invalid)
-  (bool-like [x] invalid))
+  (json->set [x] (set x)))
 
 (def nat-str-gen (gen/one-of [gen/nat (gen/fmap str gen/nat)]))
 
-(s/def ::string
-  (s/spec (s/conformer string-like)
+(def string?
+  (s/spec (conformer json->string)
           :gen (constantly (gen/one-of [gen/string
                                         gen/int
                                         gen/double]))))
-(s/def ::integer
-  (s/spec (s/conformer integer-like)
+(def integer?
+  (s/spec (conformer json->integer)
           :gen (constantly (gen/one-of [nat-str-gen gen/int]))))
 
-(s/def ::float
-  (s/spec (s/conformer float-like)
+(def float?
+  (s/spec (conformer json->float)
           :gen (constantly nat-str-gen)))
 
-(s/def ::long
-  (s/spec (s/conformer long-like)
+(def long?
+  (s/spec (conformer json->long)
           :gen (constantly nat-str-gen)))
 
-(s/def ::double
-  (s/spec (s/conformer double-like)
+(def double?
+  (s/spec (conformer json->double)
           :gen (constantly (gen/one-of [nat-str-gen gen/double]))))
 
-(s/def ::short
-  (s/spec (s/conformer short-like)
+(def short?
+  (s/spec (conformer json->short)
           :gen (constantly nat-str-gen)))
 
-(s/def ::biginteger
-  (s/spec (s/conformer biginteger-like)
+(def biginteger?
+  (s/spec (conformer json->biginteger)
           :gen (constantly nat-str-gen)))
 
-(s/def ::bigint
-  (s/conformer (s/spec bigint-like
-                       :gen (constantly nat-str-gen))))
+(def bigint?
+  (s/spec (conformer json->bigint)
+          :gen (constantly nat-str-gen)))
 
-(s/def ::set
-  (s/spec (s/conformer set-like)
+(def set?
+  (s/spec (conformer json->set)
           :gen (constantly (gen/one-of [(gen/vector gen/any)
                                         (gen/list gen/any)
                                         (gen/set gen/any)
                                         (gen/map gen/any gen/any)]))))
 
-(s/def ::keyword
-  (s/spec (s/conformer keyword-like)
+(def keyword?
+  (s/spec (conformer json->keyword)
           :gen (constantly (gen/one-of [gen/string gen/keyword]))))
 
-(s/def ::symbol
-  (s/spec (s/conformer symbol-like)
+(def symbol?
+  (s/spec (conformer json->symbol)
           :gen (constantly (gen/one-of [gen/string gen/symbol]))))
 
-(s/def ::date
-  (s/spec (s/conformer date-like)
+(def date?
+  (s/spec (conformer json->date)
           :gen (constantly (gen/one-of [gen/pos-int (gen/fmap #(java.util.Date %)
                                                               gen/pos-int)]))))
 
-(s/def ::uuid
-  (s/spec (s/conformer uuid-like)
+(def uuid?
+  (s/spec (conformer json->uuid)
           :gen (constantly (gen/one-of [(gen/fmap str gen/uuid) gen/uuid]))))
 
-(s/def ::bool (s/spec (s/conformer bool-like)
+(def boolean? (s/spec (conformer json->boolean)
                       :gen (constantly (gen/one-of [gen/string gen/boolean]))))
 
 ;; some extra stuff (arguably useful, mostly for ring.params)
-(s/def ::comma-separated-string
+(def comma-separated-string?
   (s/spec
-   (s/conformer (fn [x] (and (string? x)
-                             (when (not-empty x)
-                               (some->> (str/split x #"\s*,\s*")
-                                        (into #{} (remove #(= % ""))))))))))
+   (conformer (fn [x] (and (string? x)
+                           (when (not-empty x)
+                             (some->> (str/split x #"\s*,\s*")
+                                      (into #{} (remove #(= % ""))))))))))
 
-(s/def ::space-separated-string
+(def space-separated-string?
   (s/spec
-   (s/conformer
+   (conformer
     (fn [x] (and (string? x)
                  (when (not-empty x)
                    (set (re-seq #"\S+" x))))))))
