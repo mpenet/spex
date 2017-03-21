@@ -3,9 +3,6 @@
   convertion model for now. But this should be open via the ICodec
   protocol.
   todo: tests!"
-  (:refer-clojure
-   :exclude [string? integer? float? double? keyword? symbol?
-             set? uuid? boolean?])
   (:require
    [qbits.spex :as x]
    [clojure.spec :as s]
@@ -149,10 +146,6 @@
 (s/def ::keyword
   (s/spec (conformer json->keyword)
           :gen (constantly (gen/one-of [gen/string gen/keyword]))))
-
-(s/def ::symbol
-  (s/spec (conformer json->symbol)
-          :gen (constantly (gen/one-of [gen/string gen/symbol]))))
 
 (s/def ::date
   (s/spec (conformer json->date)
