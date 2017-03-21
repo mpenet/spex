@@ -13,33 +13,58 @@
    [clojure.spec.specs]
    [qbits.spex.json :as json]))
 
-(def registry
-  (atom {::json/string {:type :string}
-         ::json/integer {:type :integer :format :int64}
-         ::json/long {:type :integer}
-         ::json/float {:type :number}
-         ::json/double {:type :number :format :double}
-         ::json/boolean {:type :boolean}
-         ::json/short {:type :number}
-         ::json/biginteger {:type :number}
-         ::json/bigint {:type :number}
-         ::json/set {:type :array :uniqueItems true}
-         ::json/keyword {:type :string}
-         ::json/date {:type :string :format :date-time}
-         ::json/uuid {:type :string :format :uuid}}))
+(defmulti spec->json-schema identity)
+
+(defmethod spec->json-schema ::json/string
+  [_]
+  {:type :string})
+
+(defmethod spec->json-schema ::json/integer
+  [_]
+  {:type :integer :format :int64})
+
+(defmethod spec->json-schema ::json/long
+  [_]
+  {:type :integer :format :int64})
+
+(defmethod spec->json-schema ::json/float
+  [_]
+  {:type :number})
+
+(defmethod spec->json-schema ::json/boolean
+  [_]
+  {:type :boolean})
+
+(defmethod spec->json-schema ::json/set
+  [_]
+  {:type :array :uniqueItems true})
+
+(defmethod spec->json-schema ::json/date
+  [_]
+  {:type :string :format :date-time})
+
+(defmethod spec->json-schema ::json/uuid
+  [_]
+  {:type :string :format :uuid})
+
+(defmethod spec->json-schema :default
+  [_]
+  nil)
+
+;; (spec->json-schema ::json/uuid)
+
+(s/def ::age ::json/long)
+(defmethod spec->json-schema ::age [_]
+  (merge (spec->json-schema ::json/long)
+         {:description "bla bla"}))
+
+(s/def ::name ::json/string)
+(derive ::name ::json/string)
+
+(s/def ::person (s/keys :req [::age ::name]))
 
 
-(defn add-meta! [k m]
-  (swap! registry update k merge m))
-
-(defmacro def+ [k v & [meta]]
-  `(let [m# ~meta]
-     (s/def ~k ~v)
-     (when m# (add-meta! ~k m#))))
-
-(def+ ::age ::json/long {:description "foo"})
-(def+ ::name ::json/long {:description "foo"})
-(def+ ::person (s/keys :req [::age ::name]))
+;; (spec->json-schema ::person)
 
 (s/def ::foo (s/or
               :age ::age
@@ -73,7 +98,7 @@
                           (:req-un form)))]
     (reduce
      (fn [m k]
-       (assoc m (name k) (get @registry k)))
+       (assoc m (name k) (spec->json-schema k)))
      {}
      keys)))
 
@@ -96,7 +121,7 @@
 
 (defmethod emit-spec :spec-key
   [[_ spec]]
-  (or (@registry spec)
+  (or (spec->json-schema spec)
       (form->json-schema (clojure.spec.specs/conform (s/form spec)))))
 
 (defmulti emit-form :s)
