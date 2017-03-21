@@ -9,7 +9,7 @@
 (s/def ::spec
   (s/or :set set?
         :pred symbol?
-        :keyword keyword?
+        :spec-key keyword?
         :form (s/multi-spec spec-form (fn [val tag] val))))
 
 (defmethod spec-form 'clojure.core/fn [_]
