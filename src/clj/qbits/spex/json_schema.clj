@@ -1,11 +1,11 @@
 (ns qbits.spex.json-schema
   "Trying to fully interpret a spec can be difficult, error prone, so
-  we just provide an extended s/def form that provides metadata and
-  generate json-schemas from there. It's more work for the user in
-  some cases, but it's also more flexible and this doesn't bake in
-  conformers into it which is a common approach. That paired with
-  ready made json conformers should be composable enough. On the plus
-  side, the code is quite minimal."
+  we just provide an json-schema spec registry that that provides
+  metadata + convertion and generate json-schemas from there. It's
+  more work for the user in some cases, but it's also more flexible
+  and this doesn't bake in conformers into it which is a common
+  approach. That paired with ready made json conformers should be
+  composable enough. On the plus side, the code is quite minimal."
   (:require
    [clojure.spec :as s]
    [qbits.spex.specs]))
@@ -173,37 +173,39 @@
   (->> spec s/form qbits.spex.specs/conform form->json-schema))
 
 
-(require '[qbits.spex.json :as json])
+#_(do
+    (require '[qbits.spex.json :as json])
 
-(s/def ::age int?)
-(s/def ::name ::json/string)
-(s/def ::description string?)
+ (s/def ::age int?)
+ (s/def ::name ::json/string)
+ (s/def ::description string?)
 
-(extend-spec! ::age ::long {:description "bla bla"})
-(extend-spec! ::description ::long)
-(extend-spec! ::json/string ::string)
-(extend-spec! ::json/integer ::integer)
-(extend-spec! ::name ::string)
+ (extend-spec! ::age ::long {:description "bla bla"})
+ (extend-spec! ::description ::long)
+ (extend-spec! ::json/string ::string)
+ (extend-spec! ::json/integer ::integer)
+ (extend-spec! ::name ::string)
 
 
-(s/def ::person (s/keys :req [::age ::name]))
+ (s/def ::person (s/keys :req [::age ::name]))
 
-(s/def ::foo (s/or
-              :age ::age
-              :name ::name
-              :person ::person
-              :description ::description
-              :meta-desc (s/nilable ::json/string)
-              :foo (s/keys :req-un [::name ::age])
-              :and (s/and ::name (s/keys :req-un [::name ::age]))
-              :pl (s/+ ::json/string)
-              :st (s/* ::json/string)
-              :tup (s/tuple ::json/string ::json/string)
-              :map (s/map-of ::json/string ::json/integer)
-              :map (s/map-of string? number?)
-              :coll1 (s/coll-of string?)
-              :coll2 (s/coll-of ::person)
-              :str string?))
+ (s/def ::foo (s/or
+               :age ::age
+               :name ::name
+               :person ::person
+               :description ::description
+               :meta-desc (s/nilable ::json/string)
+               :foo (s/keys :req-un [::name ::age])
+               :and (s/and ::name (s/keys :req-un [::name ::age]))
+               :pl (s/+ ::json/string)
+               :st (s/* ::json/string)
+               :tup (s/tuple ::json/string ::json/string)
+               :map (s/map-of ::json/string ::json/integer)
+               :map (s/map-of string? number?)
+               :coll1 (s/coll-of string?)
+               :coll2 (s/coll-of ::person)
+               :str string?))
 
-;; (p(generate ::foo))
-(clojure.pprint/pprint (generate ::foo))
+ ;; (p(generate ::foo))
+ (clojure.pprint/pprint (generate ::foo))
+ )
