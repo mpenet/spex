@@ -67,7 +67,6 @@
   (let [keys (if required?
                 [:req :req-un]
                 [:opt :opt-un])]
-    (clojure.pprint/pprint  form)
     (->> (apply concat (vals (select-keys form keys)))
          (mapv (comp name second)))))
 
