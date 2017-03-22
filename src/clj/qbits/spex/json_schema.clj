@@ -21,7 +21,7 @@
   "Allows to derive from an extending spec, optionally extending the
   json-schema returned with `m` "
   ([spec inherited-json-schema]
-   (extend-spec! spec inherited-json-schema nil))
+   `(extend-spec! ~spec ~inherited-json-schema nil))
   ([spec inherited-json-schema extras]
    `(defmethod json-schema ~spec [_#]
       (merge (json-schema ~inherited-json-schema) ~extras))))
@@ -47,33 +47,35 @@
 (derive ::vector ::list)
 (derive ::float ::number)
 
-(extend-spec! clojure.core/string? ::string)
-(extend-spec! clojure.core/boolean? ::boolean)
-(extend-spec! clojure.core/number? ::number)
-(extend-spec! clojure.core/float? ::float)
-(extend-spec! clojure.core/double? ::double)
-(extend-spec! clojure.core/number? ::number)
-(extend-spec! clojure.core/int? ::integer)
-(extend-spec! clojure.core/pos-int? ::integer {:format :int64 :minimum 1})
-(extend-spec! clojure.core/neg-int? ::integer {:format :int64 :maximum -1})
-(extend-spec! clojure.core/keyword? ::keyword)
-(extend-spec! clojure.core/list? ::list)
-(extend-spec! clojure.core/vector? ::vector)
-(extend-spec! clojure.core/map? ::map)
+(extend-spec! 'clojure.core/string? ::string)
+(extend-spec! 'clojure.core/boolean? ::boolean)
+(extend-spec! 'clojure.core/number? ::number)
+(extend-spec! 'clojure.core/float? ::float)
+(extend-spec! 'clojure.core/double? ::double)
+(extend-spec! 'clojure.core/number? ::number)
+(extend-spec! 'clojure.core/int? ::integer)
+(extend-spec! 'clojure.core/pos-int? ::integer {:format :int64 :minimum 1})
+(extend-spec! 'clojure.core/neg-int? ::integer {:format :int64 :maximum -1})
+(extend-spec! 'clojure.core/keyword? ::keyword)
+(extend-spec! 'clojure.core/list? ::list)
+(extend-spec! 'clojure.core/vector? ::vector)
+(extend-spec! 'clojure.core/map? ::map)
 
 (declare form->json-schema)
 
 (defn emit-keys [form required?]
-  (let [[n u] (if required? [:req :req-un]
-                  [:opt :opt-un])]
-    (->> (concat (get form n) (get form u))
+  (let [keys (if required?
+                [:req :req-un]
+                [:opt :opt-un])]
+    (clojure.pprint/pprint  form)
+    (->> (apply concat (vals (select-keys form keys)))
          (mapv (comp name second)))))
 
 (defn emit-properties
   [form]
-  (let [keys (map second
-                  (concat (:req form)
-                          (:req-un form)))]
+  (let [keys (->> (select-keys form [:req :req-un :opt :opt-un])
+                  vals
+                  (apply concat))]
     (reduce
      (fn [m k]
        (assoc m (name k) (json-schema k)))
@@ -185,39 +187,39 @@
   (->> spec s/form qbits.spex.specs/conform form->json-schema))
 
 
-#_(do
-  (require '[qbits.spex.json :as json])
+(require '[qbits.spex.json :as json])
 
- (s/def ::age int?)
- (s/def ::name ::json/string)
- (s/def ::description string?)
+(s/def ::age int?)
+(s/def ::name ::json/string)
+(s/def ::description string?)
 
- (extend-spec! ::age ::long {:description "bla bla"})
- (extend-spec! ::description ::long)
- (extend-spec! ::json/string ::string)
- (extend-spec! ::json/integer ::integer)
- (extend-spec! ::name ::string)
+(extend-spec! ::age ::long {:description "bla bla"})
+(extend-spec! ::description ::long)
+(extend-spec! ::json/string ::string)
+(extend-spec! ::json/integer ::integer)
+(extend-spec! ::name ::string)
 
 
- (s/def ::person (s/keys :req [::age ::name]))
+(s/def ::person (s/keys :req [::age ::name]))
 
- (s/def ::foo (s/or
-               :age ::age
-               :name ::name
-               :person ::person
-               :description ::description
-               :meta-desc (s/nilable ::json/string)
-               :foo (s/keys :req-un [::name ::age])
-               :and (s/and ::name (s/keys :req-un [::name ::age]))
-               :pl (s/+ ::json/string)
-               :st (s/* ::json/string)
-               :tup (s/tuple ::json/string ::json/string)
-               :map (s/map-of ::json/string ::json/integer)
-               :map (s/map-of string? number?)
-               :coll1 (s/coll-of string?)
-               :coll2 (s/coll-of ::person)
-               :coll-of-map (s/coll-of map?)
-               :str string?))
+(s/def ::foo (s/or
+              :age ::age
+              :name ::name
+              :person ::person
+              :description ::description
+              :meta-desc (s/nilable ::json/string)
+              :foo (s/keys :req-un [::name ::age])
+              :and (s/and ::name (s/keys :req-un [::name ::age]))
+              :pl (s/+ ::json/string)
+              :st (s/* ::json/string)
+              :tup (s/tuple ::json/string ::json/string)
+              :map (s/map-of ::json/string ::json/integer)
+              :map (s/map-of string? number?)
+              :coll1 (s/coll-of string?)
+              :coll2 (s/coll-of ::person)
+              :coll-of-map (s/coll-of map?)
+              :str string?))
 
- (clojure.pprint/pprint (generate ::foo))
- )
+(s/def ::bar (s/keys :opt-un [::name]))
+(clojure.pprint/pprint (generate ::bar))
+;; (clojure.pprint/pprint (generate ::foo))

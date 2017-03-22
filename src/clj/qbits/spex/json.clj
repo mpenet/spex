@@ -10,7 +10,6 @@
    [clojure.test.check.generators :as gen])
   (:import (java.util.Base64$Decoder)))
 
-
 (defprotocol ICodec
   (json->integer [x])
   (json->float [x])
