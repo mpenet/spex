@@ -5,86 +5,60 @@
   some cases, but it's also more flexible and this doesn't bake in
   conformers into it which is a common approach. That paired with
   ready made json conformers should be composable enough. On the plus
-  side, the code is quite minimal.
-
-  TODO: un-unglify some things, make walkers more open (use multimethods)"
+  side, the code is quite minimal."
   (:require
    [clojure.spec :as s]
-   [clojure.spec.specs]
-   [qbits.spex.json :as json]))
+   [qbits.spex.specs]))
 
-(defmulti spec->json-schema identity)
+(defmulti json-schema identity)
 
-(defmethod spec->json-schema ::string
-  [_]
-  {:type :string})
+(defmacro inherit-spec!
+  "Allows to derive from an extending spec, optionally extending the
+  json-schema returned with `m` "
+  ([spec inherited-json-schema]
+   (extend-spec! spec inherited-json-schema nil))
+  ([spec inherited-json-schema extras]
+   `(defmethod json-schema ~spec [_#]
+      (merge (json-schema ~inherited-json-schema) ~extras))))
 
-(defmethod spec->json-schema ::integer
-  [_]
-  {:type :integer :format :int64})
+(defmacro register-spec!
+  [spec json-schema-type]
+  `(defmethod json-schema ~spec [_#] ~json-schema-type))
 
-(defmethod spec->json-schema ::long
-  [_]
-  {:type :integer :format :int64})
+(register-spec! ::string {:type :string})
+(register-spec! ::integer {:type :integer :format :int64})
+(register-spec! ::long {:type :integer :format :int64})
+(register-spec! ::float {:type :number})
+(register-spec! ::boolean {:type :boolean})
+(register-spec! ::set {:type :array :uniqueItems true})
+(register-spec! ::map {:type :object})
+(register-spec! ::list {:type :array})
+(register-spec! ::date {:type :string :format :date-time})
+(register-spec! ::uuid {:type :string :format :uuid})
+(register-spec! :default nil)
+(derive ::keyword ::string)
+(derive ::symbol ::string)
+(derive ::vector ::list)
 
-(defmethod spec->json-schema ::float
-  [_]
-  {:type :number})
-
-(defmethod spec->json-schema ::boolean
-  [_]
-  {:type :boolean})
-
-(defmethod spec->json-schema ::set
-  [_]
-  {:type :array :uniqueItems true})
-
-(defmethod spec->json-schema ::date
-  [_]
-  {:type :string :format :date-time})
-
-(defmethod spec->json-schema ::uuid
-  [_]
-  {:type :string :format :uuid})
-
-(defmethod spec->json-schema :default
-  [_]
-  nil)
-
-;; (spec->json-schema ::json/uuid)
-
-(s/def ::age ::json/long)
-(defmethod spec->json-schema ::age [_]
-  (merge (spec->json-schema ::long)
-         {:description "bla bla"}))
-
-(s/def ::name ::json/string)
-(derive ::name ::string)
-
-(s/def ::person (s/keys :req [::age ::name]))
-
-(s/def ::foo (s/or
-              :age ::age
-              :name ::name
-              :person ::person
-              :description ::json/string
-              :meta-desc (s/nilable ::json/string)
-              :foo (s/keys :req-un [::name ::age])
-              :and (s/and ::name (s/keys :req-un [::name ::age]))
-              :pl (s/+ ::json/string)
-              :st (s/* ::json/string)
-              :tup (s/tuple ::json/string ::json/string)
-              :map (s/map-of ::json/string ::json/integer)
-              :map (s/map-of string? number?)
-              :coll1 (s/coll-of string?)
-              :coll2 (s/coll-of ::person)
-              :str string?))
+(extend-spec! string? ::string)
+(extend-spec! boolean? ::boolean)
+(extend-spec! number? ::number)
+(extend-spec! float? ::float)
+(extend-spec! double? ::double)
+(extend-spec! number? ::number)
+(extend-spec! int? ::integer)
+(extend-spec! pos-int? ::integer {:format :int64 :minimum 1})
+(extend-spec! neg-int? ::integer {:format :int64 :maximum -1})
+(extend-spec! keyword? ::keyword)
+(extend-spec! list? ::list)
+(extend-spec! vector? ::vector)
+(extend-spec! map? ::map)
 
 (declare form->json-schema)
 
 (defn emit-keys [form required?]
   (let [[n u] (if required? [:req :req-un]
-               [:opt :opt-un])]
+                  [:opt :opt-un])]
     (->> (concat (get form n) (get form u))
          (mapv (comp name second)))))
 
@@ -95,31 +69,22 @@
                           (:req-un form)))]
     (reduce
      (fn [m k]
-       (assoc m (name k) (spec->json-schema k)))
+       (assoc m (name k) (json-schema k)))
      {}
      keys)))
-
-(defmulti emit-pred identity)
-(defmethod emit-pred 'clojure.core/string?
-  [_] {:type :string})
-
-(defmethod emit-pred 'clojure.core/boolean?
-  [_] {:type :boolean})
-
-(defmethod emit-pred 'clojure.core/number?
-  [_] {:type :number})
-
 
 (defmulti emit-spec (fn [[type spec]] type))
 
 (defmethod emit-spec :pred
   [[_ spec]]
-  (emit-pred spec))
+  (json-schema spec))
 
 (defmethod emit-spec :spec-key
   [[_ spec]]
-  (or (spec->json-schema spec)
-      (form->json-schema (clojure.spec.specs/conform (s/form spec)))))
+  (or (json-schema spec)
+      (form->json-schema (qbits.spex.specs/conform (s/form spec)))))
+
+;; (json-schema :qbits.spex.json-schema/age)
 
 (defmulti emit-form :s)
 
@@ -175,7 +140,7 @@
 
 (defmethod emit-tag :pred
   [{:keys [tag pred]}]
-  (emit-pred (second pred)))
+  (json-schema (second pred)))
 
 (defmethod emit-tag :form
   [{:keys [tag pred]}]
@@ -204,7 +169,41 @@
 
     :else form))
 
-(defn json-schema [spec]
-  (-> spec s/form clojure.spec.specs/conform form->json-schema))
+(defn generate [spec]
+  (->> spec s/form qbits.spex.specs/conform form->json-schema))
 
-(clojure.pprint/pprint (json-schema ::foo))
+
+(require '[qbits.spex.json :as json])
+
+(s/def ::age int?)
+(s/def ::name ::json/string)
+(s/def ::description string?)
+
+(extend-spec! ::age ::long {:description "bla bla"})
+(extend-spec! ::description ::long)
+(extend-spec! ::json/string ::string)
+(extend-spec! ::json/integer ::integer)
+(extend-spec! ::name ::string)
+
+
+(s/def ::person (s/keys :req [::age ::name]))
+
+(s/def ::foo (s/or
+              :age ::age
+              :name ::name
+              :person ::person
+              :description ::description
+              :meta-desc (s/nilable ::json/string)
+              :foo (s/keys :req-un [::name ::age])
+              :and (s/and ::name (s/keys :req-un [::name ::age]))
+              :pl (s/+ ::json/string)
+              :st (s/* ::json/string)
+              :tup (s/tuple ::json/string ::json/string)
+              :map (s/map-of ::json/string ::json/integer)
+              :map (s/map-of string? number?)
+              :coll1 (s/coll-of string?)
+              :coll2 (s/coll-of ::person)
+              :str string?))
+
+;; (p(generate ::foo))
+(clojure.pprint/pprint (generate ::foo))

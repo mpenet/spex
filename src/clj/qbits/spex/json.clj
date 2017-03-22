@@ -23,6 +23,7 @@
   (json->keyword [x])
   (json->symbol [x])
   (json->set [x])
+  (json->map [x])
   (json->date [x])
   (json->uuid [x])
   (json->byte [x])
@@ -99,7 +100,10 @@
   (json->date [x] x)
 
   clojure.lang.IPersistentCollection
-  (json->set [x] (set x)))
+  (json->set [x] (set x))
+
+  clojure.lang.IPersistentMap
+  (json->map [x] x))
 
 (def nat-str-gen (gen/one-of [gen/nat (gen/fmap str gen/nat)]))
 
