@@ -45,19 +45,19 @@
 (derive ::symbol ::string)
 (derive ::vector ::list)
 
-(extend-spec! string? ::string)
-(extend-spec! boolean? ::boolean)
-(extend-spec! number? ::number)
-(extend-spec! float? ::float)
-(extend-spec! double? ::double)
-(extend-spec! number? ::number)
-(extend-spec! int? ::integer)
-(extend-spec! pos-int? ::integer {:format :int64 :minimum 1})
-(extend-spec! neg-int? ::integer {:format :int64 :maximum -1})
-(extend-spec! keyword? ::keyword)
-(extend-spec! list? ::list)
-(extend-spec! vector? ::vector)
-(extend-spec! map? ::map)
+(extend-spec! clojure.core/string? ::string)
+(extend-spec! clojure.core/boolean? ::boolean)
+(extend-spec! clojure.core/number? ::number)
+(extend-spec! clojure.core/float? ::float)
+(extend-spec! clojure.core/double? ::double)
+(extend-spec! clojure.core/number? ::number)
+(extend-spec! clojure.core/int? ::integer)
+(extend-spec! clojure.core/pos-int? ::integer {:format :int64 :minimum 1})
+(extend-spec! clojure.core/neg-int? ::integer {:format :int64 :maximum -1})
+(extend-spec! clojure.core/keyword? ::keyword)
+(extend-spec! clojure.core/list? ::list)
+(extend-spec! clojure.core/vector? ::vector)
+(extend-spec! clojure.core/map? ::map)
 
 (declare form->json-schema)
 
@@ -88,8 +88,6 @@
   [[_ spec]]
   (or (json-schema spec)
       (form->json-schema (qbits.spex.specs/conform (s/form spec)))))
-
-;; (json-schema :qbits.spex.json-schema/age)
 
 (defmulti emit-form :s)
 
@@ -178,7 +176,7 @@
   (->> spec s/form qbits.spex.specs/conform form->json-schema))
 
 
-#_(do
+(do
     (require '[qbits.spex.json :as json])
 
  (s/def ::age int?)
@@ -211,6 +209,5 @@
                :coll2 (s/coll-of ::person)
                :str string?))
 
- ;; (p(generate ::foo))
  (clojure.pprint/pprint (generate ::foo))
  )
