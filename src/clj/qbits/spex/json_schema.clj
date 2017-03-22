@@ -1,6 +1,6 @@
 (ns qbits.spex.json-schema
   "Trying to fully interpret a spec can be difficult, error prone, so
-  we just provide an json-schema spec registry that that provides
+  we just provide a json-schema spec registry that provides
   metadata + convertion and generate json-schemas from there. It's
   more work for the user in some cases, but it's also more flexible
   and this doesn't bake in conformers into it which is a common
