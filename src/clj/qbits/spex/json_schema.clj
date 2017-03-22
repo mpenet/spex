@@ -21,7 +21,7 @@
   "Allows to derive from an extending spec, optionally extending the
   json-schema returned with `m` "
   ([spec inherited-json-schema]
-   (extend-spec! spec inherited-json-schema nil))
+   (inherit-spec! spec inherited-json-schema nil))
   ([spec inherited-json-schema extras]
    `(defmethod json-schema ~spec [_#]
       (merge (json-schema ~inherited-json-schema) ~extras))))
@@ -33,7 +33,7 @@
 (register-spec! ::string {:type :string})
 (register-spec! ::integer {:type :integer :format :int64})
 (register-spec! ::long {:type :integer :format :int64})
-(register-spec! ::float {:type :number})
+(register-spec! ::number {:type :number})
 (register-spec! ::boolean {:type :boolean})
 (register-spec! ::set {:type :array :uniqueItems true})
 (register-spec! ::map {:type :object})
@@ -41,23 +41,25 @@
 (register-spec! ::date {:type :string :format :date-time})
 (register-spec! ::uuid {:type :string :format :uuid})
 (register-spec! :default nil)
+
 (derive ::keyword ::string)
 (derive ::symbol ::string)
 (derive ::vector ::list)
+(derive ::float ::number)
 
-(extend-spec! clojure.core/string? ::string)
-(extend-spec! clojure.core/boolean? ::boolean)
-(extend-spec! clojure.core/number? ::number)
-(extend-spec! clojure.core/float? ::float)
-(extend-spec! clojure.core/double? ::double)
-(extend-spec! clojure.core/number? ::number)
-(extend-spec! clojure.core/int? ::integer)
-(extend-spec! clojure.core/pos-int? ::integer {:format :int64 :minimum 1})
-(extend-spec! clojure.core/neg-int? ::integer {:format :int64 :maximum -1})
-(extend-spec! clojure.core/keyword? ::keyword)
-(extend-spec! clojure.core/list? ::list)
-(extend-spec! clojure.core/vector? ::vector)
-(extend-spec! clojure.core/map? ::map)
+(inherit-spec! clojure.core/string? ::string)
+(inherit-spec! clojure.core/boolean? ::boolean)
+(inherit-spec! clojure.core/number? ::number)
+(inherit-spec! clojure.core/float? ::float)
+(inherit-spec! clojure.core/double? ::double)
+(inherit-spec! clojure.core/number? ::number)
+(inherit-spec! clojure.core/int? ::integer)
+(inherit-spec! clojure.core/pos-int? ::integer {:format :int64 :minimum 1})
+(inherit-spec! clojure.core/neg-int? ::integer {:format :int64 :maximum -1})
+(inherit-spec! clojure.core/keyword? ::keyword)
+(inherit-spec! clojure.core/list? ::list)
+(inherit-spec! clojure.core/vector? ::vector)
+(inherit-spec! clojure.core/map? ::map)
 
 (declare form->json-schema)
 
@@ -82,12 +84,19 @@
 
 (defmethod emit-spec :pred
   [[_ spec]]
-  (json-schema spec))
+  (if-let [s (json-schema spec)]
+    s
+    (throw (ex-info "Cannot emit schema from spec " {::spec spec}))))
 
 (defmethod emit-spec :spec-key
   [[_ spec]]
   (or (json-schema spec)
-      (form->json-schema (qbits.spex.specs/conform (s/form spec)))))
+      (let [cf (qbits.spex.specs/conform (s/form spec))]
+        (when (identical? cf :clojure.spec/invalid)
+          (throw (ex-info "Invalid/Unspecified spec"
+                          {::spec spec
+                           ::form (s/form spec)})))
+        (form->json-schema (qbits.spex.specs/conform (s/form spec))))))
 
 (defmulti emit-form :s)
 
@@ -176,18 +185,18 @@
   (->> spec s/form qbits.spex.specs/conform form->json-schema))
 
 
-(do
-    (require '[qbits.spex.json :as json])
+#_(do
+  (require '[qbits.spex.json :as json])
 
  (s/def ::age int?)
  (s/def ::name ::json/string)
  (s/def ::description string?)
 
- (extend-spec! ::age ::long {:description "bla bla"})
- (extend-spec! ::description ::long)
- (extend-spec! ::json/string ::string)
- (extend-spec! ::json/integer ::integer)
- (extend-spec! ::name ::string)
+ (inherit-spec! ::age ::long {:description "bla bla"})
+ (inherit-spec! ::description ::long)
+ (inherit-spec! ::json/string ::string)
+ (inherit-spec! ::json/integer ::integer)
+ (inherit-spec! ::name ::string)
 
 
  (s/def ::person (s/keys :req [::age ::name]))
@@ -207,6 +216,7 @@
                :map (s/map-of string? number?)
                :coll1 (s/coll-of string?)
                :coll2 (s/coll-of ::person)
+               :coll-of-map (s/coll-of map?)
                :str string?))
 
  (clojure.pprint/pprint (generate ::foo))
