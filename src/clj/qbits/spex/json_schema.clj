@@ -1,11 +1,16 @@
 (ns qbits.spex.json-schema
   "Trying to fully interpret a spec can be difficult, error prone, so
   we just provide a json-schema spec registry that provides
-  metadata + convertion and generate json-schemas from there. It's
-  more work for the user in some cases, but it's also more flexible
-  and this doesn't bake in conformers into it which is a common
-  approach. That paired with ready made json conformers should be
-  composable enough. On the plus side, the code is quite minimal."
+  metadata + convertion and generate json-schemas from there.
+  The registry hold default converters for raw json-schema types, the
+  user has to register its specs to map to these types or derive from
+  them. Optionally he can also extend them for its own specs to
+  provide more metadata.
+
+  It's more work for the user in some cases, but it's also more
+  flexible and this doesn't bake in conformers into it. That paired
+  with ready made json conformers should be composable enough. On the
+  plus side, the code is quite minimal"
   (:require
    [clojure.spec :as s]
    [qbits.spex.specs]))
