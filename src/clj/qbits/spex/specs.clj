@@ -1,4 +1,4 @@
-(ns qbits.spex.specs
+(ns clojure.spec.specs
   "Lifted/adapted from http://dev.clojure.org/jira/browse/CLJ-2112"
   (:require [clojure.spec :as s]))
 
@@ -9,7 +9,7 @@
 (s/def ::spec
   (s/or :set set?
         :pred symbol?
-        :spec-key qualified-keyword?
+        :spec-key keyword?
         :form (s/multi-spec spec-form (fn [val tag] val))))
 
 (defmethod spec-form 'clojure.core/fn [_]
@@ -22,8 +22,8 @@
 ;;  ::/foo/-form - the form spec, as returned by form
 ;;  and register as a method in spec-form
 (defmacro ^:private defspec [sym args-spec]
-  (let [args-key (keyword "qbits.spex.specs" (str (name sym) "-args"))
-        form-key (keyword "qbits.spex.specs" (str (name sym) "-form"))]
+  (let [args-key (keyword "clojure.spec.specs" (str (name sym) "-args"))
+        form-key (keyword "clojure.spec.specs" (str (name sym) "-form"))]
     `(do
        (s/def ~args-key ~args-spec)
 
@@ -105,12 +105,15 @@
 (defspec clojure.spec/& (s/cat :regex ::spec :preds (s/* ::spec)))
 (defspec clojure.spec/keys* (s/keys* :opt-un [::req ::req-un ::opt ::opt-un ::gen]))
 (defspec clojure.spec/nilable ::spec)
-(defspec clojure.spec/conformer (s/cat :conform ::conform-fn
-                                       :unform (s/? ::unform-fn)))
+(defspec clojure.spec/conformer (s/cat :conform ::conform
+                                       :unform (s/? ::unform)))
 
 (def conform (partial s/conform ::spec))
 
-(do
+
+
+
+#_(do
     (s/conform ::spec (s/form (s/spec int?)))
     (s/conform ::spec (s/form (s/spec #{42})))
     (s/conform ::spec (s/form (s/spec #(= % 42))))
