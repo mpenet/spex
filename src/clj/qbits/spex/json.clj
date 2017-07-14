@@ -5,7 +5,7 @@
   todo: tests!"
   (:require
    [qbits.spex :as x]
-   [clojure.spec :as s]
+   [clojure.spec.alpha :as s]
    [clojure.string :as str]
    [clojure.test.check.generators :as gen])
   (:import (java.util.Base64$Decoder)))

@@ -2,7 +2,7 @@
   (:require
    [clojure.string :as str]
    [clojure.test.check.generators :as gen]
-   [clojure.spec :as s]
+   [clojure.spec.alpha :as s]
    [com.gfredericks.test.chuck.generators :as gen']))
 
 (s/def ::port (s/and nat-int? #(s/int-in-range? 1 65535 %)))
