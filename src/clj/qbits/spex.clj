@@ -25,3 +25,8 @@
 (defn default [spec default]
   (s/conformer
    #(-> spec s/nilable (s/conform %) (or default))))
+
+(defmacro rel-ns
+  "Creates a relative aliased namespace matching supplied symbol"
+  [k]
+  `(alias ~k (create-ns (symbol (str *ns* "." (str ~k))))))

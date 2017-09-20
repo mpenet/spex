@@ -58,3 +58,9 @@
     (letfn [(uri? [x] (re-matches uri-rx x))
             (gen [] (gen'/string-from-regex uri-rx))]
       (s/spec uri? :gen gen))))
+
+(s/def ::url
+  (let [url-rx #"https?:\/\/\S+"]
+    (letfn [(url? [x] (re-matches url-rx x))
+            (gen [] (gen'/string-from-regex url-rx))]
+      (s/spec url? :gen gen))))
