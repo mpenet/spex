@@ -81,7 +81,7 @@
   (json->uuid [x] (java.util.UUID/fromString x))
   (json->byte [x] (-> (java.util.Base64/getDecoder) (.decode x)))
   (json->binary [x] x)
-  (json->boolean [x] (Boolean/parseBoolean x))
+  (json->boolean [x] (= "true" x))
 
   Boolean
   (json->boolean [x] x)
