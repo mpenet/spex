@@ -60,7 +60,6 @@
       (s/spec uri? :gen gen))))
 
 (s/def ::url
-  (let [url-rx #"https?:\/\/\S+"]
-    (letfn [(url? [x] (re-matches url-rx x))
-            (gen [] (gen'/string-from-regex url-rx))]
-      (s/spec url? :gen gen))))
+  (s/spec #(re-matches #"(?i)^https?:\/\/\S+" %)
+          :gen (constantly (gen/fmap #(str "http://" % ".com")
+                                     (gen/uuid)))))
