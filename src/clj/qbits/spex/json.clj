@@ -4,7 +4,6 @@
   protocol.
   todo: tests!"
   (:require
-   [qbits.spex :as x]
    [clojure.spec.alpha :as s]
    [clojure.string :as str]
    [clojure.test.check.generators :as gen])
@@ -31,7 +30,10 @@
 
 (defn conformer
   [f]
-  (s/conformer (fn [x] (x/try-or-invalid (f x)))))
+  (s/conformer #(try
+                  (f %)
+                  (catch Exception e
+                    :clojure.spec.alpha/invalid))))
 
 ;; TODO make this reifiable?
 (extend-protocol ICodec

@@ -3,6 +3,8 @@
 
 Small utility/extension library for `clojure.spec`.
 
+Subject to changes/breakage. Use at own risk.
+
 ## Installation
 
 spex is [available on Clojars](https://clojars.org/cc.qbits/spex).
