@@ -62,4 +62,4 @@
 (s/def ::url
   (s/spec #(re-matches #"(?i)^https?:\/\/\S+" %)
           :gen (constantly (gen/fmap #(str "http://" % ".com")
-                                     (gen/uuid)))))
+                                     gen/string-alphanumeric))))
