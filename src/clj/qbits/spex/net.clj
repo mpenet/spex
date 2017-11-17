@@ -114,3 +114,4 @@
 (uri-spec-for-scheme ::http ["http" "https"])
 (uri-spec-for-scheme ::ws ["ws" "wss"])
 (uri-spec-for-scheme ::ftp ["http" "https"])
+(uri-spec-for-scheme ::redis ["redis"])
