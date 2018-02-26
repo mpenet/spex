@@ -25,7 +25,6 @@
   (swap! metadata-registry
          #(update % k
                   (fn [m]
-                    (prn f m args)
                     (apply f m args)))))
 
 (s/fdef reset-meta!
