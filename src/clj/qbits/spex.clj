@@ -39,7 +39,8 @@
          #(assoc % k m)))
 
 (s/fdef meta
-        :args (s/cat :k qualified-keyword?)
+        :args (s/cat :k qualified-keyword?
+                     :merge-with-ancestors (s/? boolean?))
         :ret any?)
 (defn meta
   "Like clojure.core/meta but for registered specs.
