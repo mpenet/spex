@@ -34,7 +34,11 @@ internals tricks at the cost of some user friendlyness sometimes.
   (s/meta ::bar) => {:something :you-need}
 
   (spex/alter-meta! ::bar {:another :key})
-  (s/meta ::bar) => {:something :you-need, :another :key}
+  ;; just the meta of ::bar
+  (s/meta ::bar) => {:another :key}
+
+  :; merged meta of ::foo and ::bar
+  (s/meta ::bar true) => {:something :you-need, :another :key}
   ```
 
   and `with-doc` is just sugar on top of all this to add docstrings to specs
