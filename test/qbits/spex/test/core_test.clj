@@ -13,10 +13,10 @@
 (deftest test-meta
   (is (= (sx/meta ::foo) nil))
 
-  (sx/reset-meta! ::foo {:bar :baz})
+  (sx/with-meta! ::foo {:bar :baz})
   (is (= (sx/meta ::foo) {:bar :baz}))
 
-  (sx/alter-meta! ::foo assoc :bak :prout)
+  (sx/vary-meta! ::foo assoc :bak :prout)
   (is (= (sx/meta ::foo) {:bak :prout
                           :bar :baz}))
 
@@ -28,7 +28,7 @@
          {:bak :prout
           :bar :baz}))
 
-  (sx/alter-meta! ::bar assoc :1 :2)
+  (sx/vary-meta! ::bar assoc :1 :2)
   (is (= (sx/meta ::bar true)
          {:bak :prout
           :bar :baz

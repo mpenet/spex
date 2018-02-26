@@ -1,5 +1,5 @@
 (ns qbits.spex
-  (:refer-clojure :exclude [meta reset-meta! alter-meta!])
+  (:refer-clojure :exclude [meta])
   (:require
    [clojure.spec.alpha :as s]))
 
@@ -11,31 +11,34 @@
 ;; The following only works only for registered specs
 (s/def ::metadata-registry-val (s/map-of qualified-keyword? any?))
 
-(defonce metadata-registry
-  (atom {}))
+(defonce metadata-registry (atom {}))
 
-(s/fdef alter-meta!
+(s/fdef vary-meta!
         :args (s/cat :k qualified-keyword?
                      :f ifn?
                      :args (s/* any?))
-        :ret ::metadata-registry-val)
-(defn alter-meta!
-  "Like clojure.core/vary-meta but for registered specs"
+        :ret qualified-keyword?)
+(defn vary-meta!
+  "Like clojure.core/vary-meta but for registered specs, mutates the
+  meta in place, return the keyword spec"
   [k f & args]
   (swap! metadata-registry
          #(update % k
                   (fn [m]
-                    (apply f m args)))))
+                    (apply f m args))))
+  k)
 
-(s/fdef reset-meta!
+(s/fdef with-meta!
         :args (s/cat :k qualified-keyword?
                      :meta any?)
         :ret ::metadata-registry-val)
-(defn reset-meta!
-  "Like clojure.core/with-meta but for registered specs"
+(defn with-meta!
+  "Like clojure.core/with-meta but for registered specs, mutates the
+  meta in place, return the keyword spec"
   [k m]
   (swap! metadata-registry
-         #(assoc % k m)))
+         #(assoc % k m))
+  k)
 
 (s/fdef meta
         :args (s/cat :k qualified-keyword?
@@ -73,4 +76,4 @@
 (defn with-doc
   "Add doc metadata on a registered spec"
   [k doc]
-  (alter-meta! k assoc :doc doc))
+  (vary-meta! k assoc :doc doc))

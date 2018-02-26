@@ -13,13 +13,13 @@ internals tricks at the cost of some user friendlyness sometimes.
   `(spex/rel-ns 'foo.bar)` would create user.foo.bar
 
 * adds a metadata registry for registered specs, it currently supports
-  variants of `alter-meta!`, `reset-meta!`, `meta`, adds
+  variants of `vary-meta!`, `with-meta!`, `meta`, adds
   `unregister-meta!` and `with-doc`.
 
   you can then write code like:
   ```clj
   (-> (s/def ::foo string?)
-      (spex/alter-meta! {:something :you-need}))
+      (spex/vary-meta! {:something :you-need}))
 
    ;; and retrieve the values with spex/meta
   (spex/meta ::foo) => {:something :you-need}
@@ -33,7 +33,7 @@ internals tricks at the cost of some user friendlyness sometimes.
 
   (s/meta ::bar) => {:something :you-need}
 
-  (spex/alter-meta! ::bar {:another :key})
+  (spex/vary-meta! ::bar {:another :key})
   ;; just the meta of ::bar
   (s/meta ::bar) => {:another :key}
 
