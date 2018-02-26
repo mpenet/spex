@@ -47,6 +47,17 @@ internals tricks at the cost of some user friendlyness sometimes.
   ```clj
   (with-doc ::foo "bla bla bla")
   ```
+
+  All the functions that mutate the metadata of a spec return the spec
+  key, that makes chaining easier:
+
+  ```clojure
+  (-> (s/def ::foo string?)
+      (spex/vary-meta! {:something :you-need})
+      (cond->
+        something?
+        (spex/vary-meta! {:something-else :you-might-need})))
+  ```
 ## Installation
 
 spex is [available on Clojars](https://clojars.org/cc.qbits/spex).
