@@ -5,7 +5,8 @@ Small utility/extension library for `clojure.spec`.
 
 Subject to changes/breakage. Use at own risk.
 
-At the moment it does only two things:
+At the moment it does only two things and does not rely on spec
+internals tricks at the cost of some user friendlyness sometimes.
 
 * adds a sugar to create namespaces within a ns
   If you are in the user namespace
