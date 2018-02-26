@@ -5,7 +5,6 @@ Small utility/extension library for `clojure.spec`.
 
 Subject to changes/breakage. Use at own risk.
 
-
 At the moment it does only two things:
 
 * adds a sugar to create namespaces within a ns
@@ -37,12 +36,12 @@ At the moment it does only two things:
   (s/meta ::bar) => {:something :you-need, :another :key}
   ```
 
+  and `with-doc` is just sugar on top of all this to add docstrings to specs
 
 
-
-
-
-
+  ```clj
+  (with-doc ::foo "bla bla bla")
+  ```
 ## Installation
 
 spex is [available on Clojars](https://clojars.org/cc.qbits/spex).
