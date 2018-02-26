@@ -63,16 +63,17 @@
 
 (s/fdef unregister-meta!
         :args (s/cat :k qualified-keyword?)
-        :ret ::metadata-registry-val)
+        :ret qualified-keyword?)
 (defn unregister-meta!
   "Unregister meta data for a spec"
   [k]
-  (swap! metadata-registry dissoc k))
+  (swap! metadata-registry dissoc k)
+  k)
 
 (s/fdef with-doc
         :args (s/cat :k qualified-keyword?
                      :doc string?)
-        :ret ::metadata-registry-val)
+        :ret qualified-keyword?)
 (defn with-doc
   "Add doc metadata on a registered spec"
   [k doc]
