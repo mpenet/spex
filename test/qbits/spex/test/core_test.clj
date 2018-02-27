@@ -5,7 +5,6 @@
    [clojure.spec.alpha :as s]))
 
 (s/def ::foo string?)
-(s/def ::bar string?)
 
 (sx/unregister-meta! ::foo)
 (sx/unregister-meta! ::bar)
@@ -20,10 +19,9 @@
   (is (= (sx/meta ::foo) {:bak :prout
                           :bar :baz}))
 
+  (s/def ::bar ::foo)
 
-  (derive ::bar ::foo)
   (is (= (sx/meta ::bar) nil))
-
   (is (= (sx/meta ::bar true)
          {:bak :prout
           :bar :baz}))
@@ -34,4 +32,17 @@
           :bar :baz
           :1 :2})))
 
-;; (run-tests)
+(deftest tst-hierachy
+  (s/def ::bak string?)
+  (is (sx/isa? ::bar ::foo))
+  (is (not (sx/isa? ::foo ::baz)))
+
+  (s/def ::bak ::bar)
+  (is (sx/isa? ::bak ::foo))
+  (is (= (sx/ancestors ::bak) #{::bar ::foo}))
+  (is (= (sx/descendants ::foo) #{::bar ::bak}))
+  (is (= (sx/parents ::foo) nil))
+  (is (= (sx/parents ::bar) #{::foo}))
+
+  (sx/underive ::baz ::bar)
+  (is (= (sx/ancestors ::baz) nil)))

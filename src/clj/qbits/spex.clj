@@ -1,5 +1,6 @@
 (ns qbits.spex
-  (:refer-clojure :exclude [meta])
+  (:refer-clojure
+   :exclude [meta isa? parents ancestors derive descendants underive])
   (:require
    [clojure.spec.alpha :as s]))
 
@@ -12,6 +13,72 @@
 (s/def ::metadata-registry-val (s/map-of qualified-keyword? any?))
 
 (defonce metadata-registry (atom {}))
+(defonce spec-hierarchy (atom (make-hierarchy)))
+
+(s/fdef derive
+        :args (s/cat :tag qualified-keyword?
+                     :parent qualified-keyword?))
+(defn derive
+  "Like clojure.core/derive but scoped on our spec hierarchy"
+  [tag parent]
+  (swap! spec-hierarchy
+         clojure.core/derive tag parent))
+
+(s/fdef underive
+        :args (s/cat :tag qualified-keyword?
+                     :parent qualified-keyword?))
+(defn underive
+  "Like clojure.core/underive but scoped on our spec hierarchy"
+  [tag parent]
+  (swap! spec-hierarchy
+         clojure.core/underive tag parent))
+
+(s/fdef isa?
+        :args (s/cat :child qualified-keyword?
+                     :parent qualified-keyword?))
+(defn isa?
+  "Like clojure.core/isa? but scoped on our spec hierarchy"
+  [child parent]
+  (clojure.core/isa? @spec-hierarchy child parent))
+
+(s/fdef parents
+        :args (s/cat :tag qualified-keyword?))
+(defn parents
+  "Like clojure.core/parents but scoped on our spec hierarchy"
+  [tag]
+  (clojure.core/parents @spec-hierarchy tag))
+
+(s/fdef ancestors
+        :args (s/cat :tag qualified-keyword?))
+(defn ancestors
+  "Like clojure.core/ancestors but scoped on our spec hierarchy"
+  [tag]
+  (clojure.core/ancestors @spec-hierarchy tag))
+
+(s/fdef descendants
+        :args (s/cat :tag qualified-keyword?))
+(defn descendants
+  "Like clojure.core/descendants but scoped on our spec hierarchy"
+  [tag]
+  (clojure.core/descendants @spec-hierarchy tag))
+
+;; here be dragons
+(def spec-registry @#'clojure.spec.alpha/registry-ref)
+
+(defn update-hierarchy!
+  [reg]
+  (run! (fn [[k v]]
+          (when (qualified-keyword? v)
+            (derive k v)))
+        reg))
+
+(defonce _
+  (do
+    (add-watch spec-registry
+               ::update-hierarchy
+               (fn [k r o n]
+                 (update-hierarchy! n)))
+    (update-hierarchy! @spec-registry)))
 
 (s/fdef vary-meta!
         :args (s/cat :k qualified-keyword?

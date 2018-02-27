@@ -5,8 +5,15 @@ Small utility/extension library for `clojure.spec`.
 
 Subject to changes/breakage. Use at own risk.
 
-At the moment it does only two things and does not rely on spec
-internals tricks at the cost of some user friendlyness sometimes.
+Start with
+
+At the moment it does only two things
+
+assuming
+
+``` clojure
+(require '[qbits.spex :as spex])
+```
 
 * adds a sugar to create namespaces within a ns
   If you are in the user namespace
@@ -25,13 +32,12 @@ internals tricks at the cost of some user friendlyness sometimes.
   (spex/meta ::foo) => {:something :you-need}
   ```
   But it would get tedious quickly when you alias specs and in cases where you might want to inherit from a "hierarchy" of specs
-  If you `clojure.core/derive` one spec with another you can use the other arity of `spex/meta` and get an aggregate of values
+  Luckily spex maintains a hierarchy internally and you can leverage it easily:
+
   ```clj
-  (s/def ::bar string?)
+  (s/def ::bar ::foo)
 
-  (derive ::bar ::foo)
-
-  (s/meta ::bar) => {:something :you-need}
+  (s/meta ::bar) => nil
 
   (spex/vary-meta! ::bar {:another :key})
   ;; just the meta of ::bar
@@ -42,6 +48,12 @@ internals tricks at the cost of some user friendlyness sometimes.
   ```
 
   and `with-doc` is just sugar on top of all this to add docstrings to specs
+
+  the internal hierarchy is queriable just like a normal clojure one
+  you can use `spex/isa?` `spex/descendants` `spex/ancestors`
+  `spex/parents` `spex/derive` `spex/underive`, which are just
+  partially applied functions over the same functions in core with our
+  own hierarchy `spex/spec-hierarchy`.
 
 
   ```clj
