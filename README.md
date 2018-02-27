@@ -5,9 +5,7 @@ Small utility/extension library for `clojure.spec`.
 
 Subject to changes/breakage. Use at own risk.
 
-Start with
-
-At the moment it does only two things
+At the moment it does only two things:
 
 assuming
 
