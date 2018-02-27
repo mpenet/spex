@@ -56,6 +56,20 @@ assuming
   own hierarchy `spex/spec-hierarchy`.
 
 
+ ```clojure
+     (s/def ::port (int-in-range? 1 65535))
+     (s/def ::redis-port ::port)
+
+     (spex/isa? ::redis-port ::port) => true
+
+     (s/def ::cassandra-port ::port)
+
+     ;; list all things ::port
+     (spex/descendants ::port) => #{::redis-port ::cassandra-port}))
+
+ ```
+
+
   ```clj
   (with-doc ::foo "bla bla bla")
   ```
