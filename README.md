@@ -91,16 +91,6 @@ spex is [available on Clojars](https://clojars.org/cc.qbits/spex).
 
 [![Clojars Project](https://img.shields.io/clojars/v/cc.qbits/spex.svg)](https://clojars.org/cc.qbits/spex)
 
-Add this to your dependencies:
-
-```clojure
-[cc.qbits/spex "0.1.0-SNAPSHOT"]
-```
-
-Please check the
-[Changelog](https://github.com/mpenet/spex/blob/master/CHANGELOG.md)
-if you are upgrading.
-
 ## License
 
 Copyright © 2016 [Max Penet](http://twitter.com/mpenet)
