@@ -56,7 +56,7 @@ assuming
   own hierarchy `spex/spec-hierarchy`.
 
 
- ```clojure
+  ```clojure
      (s/def ::port (int-in-range? 1 65535))
      (s/def ::redis-port ::port)
 
@@ -67,7 +67,9 @@ assuming
      ;; list all things ::port
      (spex/descendants ::port) => #{::redis-port ::cassandra-port}))
 
- ```
+  ```
+
+  This only works for aliases obviously.
 
 
   ```clj
