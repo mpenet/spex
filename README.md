@@ -85,10 +85,11 @@ assuming
 
   This only works for aliases obviously.
 
-
 ## Installation
 
 spex is [available on Clojars](https://clojars.org/cc.qbits/spex).
+
+[![Clojars Project](https://img.shields.io/clojars/v/cc.qbits/spex.svg)](https://clojars.org/cc.qbits/spex)
 
 Add this to your dependencies:
 
