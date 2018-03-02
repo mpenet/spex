@@ -12,11 +12,6 @@ assuming
 ``` clojure
 (require '[qbits.spex :as spex])
 ```
-
-* adds a sugar to create namespaces within a ns. Ex: if you are in
-  the user namespace `(spex/rel-ns 'foo.bar)` would create
-  user.foo.bar
-
 * add `def-derived` which creates a keyword hierarchy behind the
   scenes (the hierarchy is internal/scoped to spex/ so no risk of
   cluttering the global one)
@@ -125,6 +120,10 @@ assuming
   ```
 
   This only works for aliases obviously.
+
+* adds a sugar to create namespaces within a ns. Ex: if you are in
+  the user namespace `(spex/rel-ns 'foo.bar)` would create
+  user.foo.bar
 
 ## Installation
 
