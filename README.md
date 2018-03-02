@@ -18,7 +18,7 @@ assuming
   `(spex/rel-ns 'foo.bar)` would create user.foo.bar
 
 * add `def-derived` which creates a keyword hierarchy behind the
-  scenes (the hierarchy is internal/scoped to spec/ so no risk of
+  scenes (the hierarchy is internal/scoped to spex/ so no risk of
   cluttering the global one)
 
   ```clj
