@@ -19,27 +19,38 @@ assuming
 
 * add `def-derived` which creates a keyword hierarchy behind the
   scenes (the hierarchy is internal/scoped to spec/ so no risk of
-  cluttering the global one).
+  cluttering the global one)
 
   ```clj
-  (def-derived ::foo ::bar)
+  (s/def ::foo string?)
+  (spex/def-derived ::bar ::foo)
   ```
-  equivalent to
+  equivalent to:
   ```clj
-  (s/def ::foo ::bar)
-  (spex/derive ::foo ::bar)
+  (s/def ::bar ::foo)
+  (spex/derive ::bar ::foo)
   ```
 
-  but also works with more arguments in that case we assume you're working with maps
+  but also works with more arguments in that case we assume you're
+  working with map specs:
 
   ```clj
-  (s/def-derive ::foo ::bar ::baz ...)
+  (spex/def-derived ::foo ::bar ::baz ...)
   ```
-  equivalent to
+  equivalent to:
   ```clj
   (s/def ::foo (s/merge ::bar ::baz))
   (spex/derive ::foo ::bar)
   (spex/derive ::foo ::baz)
+  ```
+
+  So why do that? well you can then inspect the hierarchy, which can
+  be handy:
+
+  ``` clj
+  (s/def-derived ::foo ::bar ::baz)
+  (spex/isa? ::foo ::bar) => true
+  (spex/isa? ::foo ::baz) => true
   ```
 
 * adds a metadata registry for registered specs, it currently supports
@@ -55,13 +66,16 @@ assuming
   (spex/meta ::foo) => {:something :you-need}
   ```
 
-    Once we have this hierarchy in place we can integrate this into
-    metadata retrieval
+  Since we have this hierarchy in place we can integrate this into
+  metadata retrieval. Told you it could be useful :)
 
   ```clj
   (spex/def-derived ::bar ::foo)
 
   (spex/meta ::bar) => nil
+
+  ;; remember we have meta data on :foo already, such that:
+  (spex/meta ::foo) => {:something :you-need}
 
   ;; register meta at ::bar level
   (spex/vary-meta! ::bar {:another :key})
@@ -70,18 +84,17 @@ assuming
   (spex/meta ::bar) => {:another :key}
 
   ;; retrieve the meta for ::bar but also all its ancestors if you pass true to spex/meta
-  ;; merged meta of ::foo and ::bar
   (spex/meta ::bar true) => {:something :you-need, :another :key}
   ```
 
   and `spex/with-doc` is just sugar on top of all this to add docstrings to specs
 
   ```clj
-  (with-doc ::foo "bla bla bla")
+  (spex/with-doc ::foo "bla bla bla")
   ```
 
   All the functions that mutate the metadata of a spec return the spec
-  key, that makes chaining easier:
+  key, that makes chaining easier, same goes for `spex/def-derived`:
 
   ```clojure
   (-> (s/def ::foo string?)
@@ -94,16 +107,16 @@ assuming
   you can use `spex/isa?` `spex/descendants` `spex/ancestors`
   `spex/parents` `spex/derive` `spex/underive`, which are just
   partially applied functions over the same functions in core with our
-  own hierarchy `spex/spec-hierarchy`.
+  own internal hierarchy `spex/spec-hierarchy`.
 
 
   ```clojure
      (s/def ::port (int-in-range? 1 65535))
-     (s/def-derived ::redis-port ::port)
+     (spex/def-derived ::redis-port ::port)
 
      (spex/isa? ::redis-port ::port) => true
 
-     (s/def-derived ::cassandra-port ::port)
+     (spex/def-derived ::cassandra-port ::port)
 
      ;; list all things ::port
      (spex/descendants ::port) => #{::redis-port ::cassandra-port}))

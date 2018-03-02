@@ -149,3 +149,5 @@
         ~@(for [p parents
                 ;; we can only derive from registered specs
                 :when (qualified-keyword? p)]
+            `(derive ~k ~p))
+        ~k))))
