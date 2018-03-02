@@ -99,7 +99,7 @@ assuming
         something?
         (spex/vary-meta! {:something-else :you-might-need})))
   ```
-  The internal hierarchy is queriable just like a normal clojure one
+  The internal hierarchy is queriable just like the global keyword hierarchy,
   you can use `spex/isa?` `spex/descendants` `spex/ancestors`
   `spex/parents` `spex/derive` `spex/underive`, which are just
   partially applied functions over the same functions in core with our
