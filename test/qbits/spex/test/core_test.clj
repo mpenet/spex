@@ -6,8 +6,8 @@
 
 (s/def ::foo string?)
 
-(sx/unregister-meta! ::foo)
-(sx/unregister-meta! ::bar)
+;; (sx/unregister-meta! ::foo)
+;; (sx/unregister-meta! ::bar)
 
 (deftest test-meta
   (is (= (sx/meta ::foo) nil))
@@ -19,7 +19,7 @@
   (is (= (sx/meta ::foo) {:bak :prout
                           :bar :baz}))
 
-  (s/def ::bar ::foo)
+  (sx/def-derived ::bar ::foo)
 
   (is (= (sx/meta ::bar) nil))
   (is (= (sx/meta ::bar true)
@@ -37,7 +37,7 @@
   (is (sx/isa? ::bar ::foo))
   (is (not (sx/isa? ::foo ::baz)))
 
-  (s/def ::bak ::bar)
+  (sx/def-derived ::bak ::bar)
   (is (sx/isa? ::bak ::foo))
   (is (= (sx/ancestors ::bak) #{::bar ::foo}))
   (is (= (sx/descendants ::foo) #{::bar ::bak}))

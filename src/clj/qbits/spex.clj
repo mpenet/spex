@@ -62,24 +62,6 @@
   [tag]
   (clojure.core/descendants @spec-hierarchy tag))
 
-;; here be dragons
-(def spec-registry @#'clojure.spec.alpha/registry-ref)
-
-(defn update-hierarchy!
-  [reg]
-  (run! (fn [[k v]]
-          (when (qualified-keyword? v)
-            (derive k v)))
-        reg))
-
-(defonce _
-  (do
-    (add-watch spec-registry
-               ::update-hierarchy
-               (fn [k r o n]
-                 (update-hierarchy! n)))
-    (update-hierarchy! @spec-registry)))
-
 (s/fdef vary-meta!
         :args (s/cat :k qualified-keyword?
                      :f ifn?
@@ -145,3 +127,25 @@
   "Add doc metadata on a registered spec"
   [k doc]
   (vary-meta! k assoc :doc doc))
+
+(s/fdef def-derived
+        :args (s/cat :k qualified-keyword?
+                     :parents (s/+ any?))) ;; refine
+(defmacro def-derived
+  "2 arg arity will define a new spec such that (s/def ::k ::parent) and
+  define a relationship between the 2 with spex/derive such
+  that: (spec/isa? k parent) => true.
+  3 arg arity will define the same relationship but instead of
+  creating a simple spec alias it will create a new spec such that
+  (s/def ::k (s/merge ::parent [specs...]).
+  Parents derivation only works between registered specs."
+  ([k & parents]
+   (let [[parent & more] parents]
+     `(do
+        (s/def ~k
+         ~(if more
+            `(s/merge ~@parents)
+            parent))
+        ~@(for [p parents
+                ;; we can only derive from registered specs
+                :when (qualified-keyword? p)]

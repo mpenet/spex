@@ -5,7 +5,7 @@ Small utility/extension library for `clojure.spec`.
 
 Subject to changes/breakage. Use at own risk.
 
-At the moment it does only two things:
+At the moment it does only 3 things:
 
 assuming
 
@@ -16,6 +16,31 @@ assuming
 * adds a sugar to create namespaces within a ns
   If you are in the user namespace
   `(spex/rel-ns 'foo.bar)` would create user.foo.bar
+
+* add `def-derived` which creates a keyword hierarchy behind the
+  scenes (the hierarchy is internal/scoped to spec/ so no risk of
+  cluttering the global one).
+
+  ```clj
+  (def-derived ::foo ::bar)
+  ```
+  equivalent to
+  ```clj
+  (s/def ::foo ::bar)
+  (spex/derive ::foo ::bar)
+  ```
+
+  but also works with more arguments in that case we assume you're working with maps
+
+  ```clj
+  (s/def-derive ::foo ::bar ::baz ...)
+  ```
+  equivalent to
+  ```clj
+  (s/def ::foo (s/merge ::bar ::baz))
+  (spex/derive ::foo ::bar)
+  (spex/derive ::foo ::baz)
+  ```
 
 * adds a metadata registry for registered specs, it currently supports
   variants of `vary-meta!`, `with-meta!`, `meta`, adds
@@ -29,23 +54,27 @@ assuming
    ;; and retrieve the values with spex/meta
   (spex/meta ::foo) => {:something :you-need}
   ```
-  But it would get tedious quickly when you alias specs and in cases where you might want to inherit from a "hierarchy" of specs
-  Luckily spex maintains a hierarchy internally and you can leverage it easily:
+
+    Once we have this hierarchy in place we can integrate this into
+    metadata retrieval
 
   ```clj
-  (s/def ::bar ::foo)
+  (spex/def-derived ::bar ::foo)
 
-  (s/meta ::bar) => nil
+  (spex/meta ::bar) => nil
 
+  ;; register meta at ::bar level
   (spex/vary-meta! ::bar {:another :key})
-  ;; just the meta of ::bar
-  (s/meta ::bar) => {:another :key}
 
-  :; merged meta of ::foo and ::bar
-  (s/meta ::bar true) => {:something :you-need, :another :key}
+  ;; just the meta of ::bar
+  (spex/meta ::bar) => {:another :key}
+
+  ;; retrieve the meta for ::bar but also all its ancestors if you pass true to spex/meta
+  ;; merged meta of ::foo and ::bar
+  (spex/meta ::bar true) => {:something :you-need, :another :key}
   ```
 
-  and `with-doc` is just sugar on top of all this to add docstrings to specs
+  and `spex/with-doc` is just sugar on top of all this to add docstrings to specs
 
   ```clj
   (with-doc ::foo "bla bla bla")
@@ -70,11 +99,11 @@ assuming
 
   ```clojure
      (s/def ::port (int-in-range? 1 65535))
-     (s/def ::redis-port ::port)
+     (s/def-derived ::redis-port ::port)
 
      (spex/isa? ::redis-port ::port) => true
 
-     (s/def ::cassandra-port ::port)
+     (s/def-derived ::cassandra-port ::port)
 
      ;; list all things ::port
      (spex/descendants ::port) => #{::redis-port ::cassandra-port}))
