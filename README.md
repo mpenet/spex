@@ -27,6 +27,7 @@ assuming
   ```
   equivalent to:
   ```clj
+  (s/def ::foo string?)
   (s/def ::bar ::foo)
   (spex/derive ::bar ::foo)
   ```
