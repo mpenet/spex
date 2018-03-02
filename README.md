@@ -13,9 +13,9 @@ assuming
 (require '[qbits.spex :as spex])
 ```
 
-* adds a sugar to create namespaces within a ns
-  If you are in the user namespace
-  `(spex/rel-ns 'foo.bar)` would create user.foo.bar
+* adds a sugar to create namespaces within a ns. Ex: if you are in
+  the user namespace `(spex/rel-ns 'foo.bar)` would create
+  user.foo.bar
 
 * add `def-derived` which creates a keyword hierarchy behind the
   scenes (the hierarchy is internal/scoped to spex/ so no risk of
