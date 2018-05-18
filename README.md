@@ -87,6 +87,8 @@ assuming
 
   ```clj
   (spex/with-doc ::foo "bla bla bla")
+
+  (s/doc ::foo) => "bla bla bla"
   ```
 
   All the functions that mutate the metadata of a spec return the spec
