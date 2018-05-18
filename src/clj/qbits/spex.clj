@@ -128,6 +128,14 @@
   [k doc]
   (vary-meta! k assoc :doc doc))
 
+(s/fdef doc
+        :args (s/cat :k qualified-keyword?)
+        :ret (s/nilable string?))
+(defn doc
+  "Returns doc associated with spec"
+  [k]
+  (some-> (meta k) :doc))
+
 (s/fdef def-derived
         :args (s/cat :k qualified-keyword?
                      :parents (s/+ any?))) ;; refine
