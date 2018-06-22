@@ -1,4 +1,4 @@
-(defproject cc.qbits/spex "0.5.1"
+(defproject cc.qbits/spex "0.6.0"
   :description "Simple spex extensions, utils"
   :url "https://github.com/mpenet/spex"
   :license {:name "Eclipse Public License"
