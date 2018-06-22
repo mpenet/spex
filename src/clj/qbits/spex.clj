@@ -138,7 +138,7 @@
 
 (s/fdef def-derived
         :args (s/cat :k qualified-keyword?
-                     :parents (s/+ any?))) ;; refine
+                     :parent qualified-keyword?))
 (defmacro def-derived
   "2 arg arity will define a new spec such that (s/def ::k ::parent) and
   define a relationship between the 2 with spex/derive such
@@ -147,15 +147,21 @@
   creating a simple spec alias it will create a new spec such that
   (s/def ::k (s/merge ::parent [specs...]).
   Parents derivation only works between registered specs."
-  ([k & parents]
-   (let [[parent & more] parents]
-     `(do
-        (s/def ~k
-         ~(if more
-            `(s/merge ~@parents)
-            parent))
-        ~@(for [p parents
-                ;; we can only derive from registered specs
-                :when (qualified-keyword? p)]
-            `(derive ~k ~p))
-        ~k))))
+  ([k parent]
+   `(do
+      (s/def ~k ~parent)
+      (derive ~k ~parent)
+      ~k)))
+
+(s/fdef def-merged
+        :args (s/cat :k qualified-keyword?
+                     :parents (s/coll-of qualified-keyword?)))
+(defmacro def-merged
+  [k parents]
+  `(do
+     (s/def ~k (s/merge ~@parents))
+     ~@(for [p parents
+             ;; we can only derive from registered specs
+             :when (qualified-keyword? p)]
+         `(derive ~k ~p))
+     ~k))

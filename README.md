@@ -27,11 +27,10 @@ assuming
   (spex/derive ::bar ::foo)
   ```
 
-  but also works with more arguments in that case we assume you're
-  working with map specs:
+  but that also works with maps, here foo will derive from ::baz and ::bar
 
   ```clj
-  (spex/def-derived ::foo ::bar ::baz ...)
+  (spex/def-merged ::foo [::bar ::baz])
   ```
   equivalent to:
   ```clj
@@ -44,7 +43,9 @@ assuming
   be handy:
 
   ``` clj
-  (s/def-derived ::foo ::bar ::baz)
+  (s/def-merged ::foo [::bar ::baz])
+
+  (spex/ancestors ::foo) => #{::bar ::baz}
   (spex/isa? ::foo ::bar) => true
   (spex/isa? ::foo ::baz) => true
   ```

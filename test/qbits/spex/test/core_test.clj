@@ -6,9 +6,6 @@
 
 (s/def ::foo string?)
 
-;; (sx/unregister-meta! ::foo)
-;; (sx/unregister-meta! ::bar)
-
 (deftest test-meta
   (is (= (sx/meta ::foo) nil))
 
@@ -32,7 +29,7 @@
           :bar :baz
           :1 :2})))
 
-(deftest tst-hierachy
+(deftest test-hierachy
   (s/def ::bak string?)
   (is (sx/isa? ::bar ::foo))
   (is (not (sx/isa? ::foo ::baz)))
@@ -46,3 +43,9 @@
 
   (sx/underive ::baz ::bar)
   (is (= (sx/ancestors ::baz) nil)))
+
+(deftest test-merged
+  (s/def ::a (s/keys))
+  (s/def ::b (s/keys))
+  (sx/def-merged ::m [::a ::b])
+  (is (= #{::a ::b} (sx/ancestors ::m))))
