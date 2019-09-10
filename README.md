@@ -57,7 +57,7 @@ assuming
   you can then write code like:
   ```clj
   (-> (s/def ::foo string?)
-      (spex/vary-meta! {:something :you-need}))
+      (spex/vary-meta! assoc :something :you-need))
 
    ;; and retrieve the values with spex/meta
   (spex/meta ::foo) => {:something :you-need}
@@ -75,7 +75,7 @@ assuming
   (spex/meta ::foo) => {:something :you-need}
 
   ;; register meta at ::bar level
-  (spex/vary-meta! ::bar {:another :key})
+  (spex/vary-meta! ::bar assoc :another :key)
 
   ;; just the meta of ::bar
   (spex/meta ::bar) => {:another :key}
@@ -97,10 +97,10 @@ assuming
 
   ```clojure
   (-> (s/def ::foo string?)
-      (spex/vary-meta! {:something :you-need})
+      (spex/vary-meta! assoc :something :you-need)
       (cond->
         something?
-        (spex/vary-meta! {:something-else :you-might-need})))
+        (spex/vary-meta! assoc :something-else :you-might-need)))
   ```
   The internal hierarchy is queriable just like the global keyword hierarchy,
   you can use `spex/isa?` `spex/descendants` `spex/ancestors`
