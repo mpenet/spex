@@ -1,4 +1,5 @@
 (ns qbits.spex
+  #?(:cljs (:require-macros [qbits.spex]))
   (:refer-clojure
    :exclude [meta isa? parents ancestors derive descendants underive])
   (:require
