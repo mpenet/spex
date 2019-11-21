@@ -1,6 +1,6 @@
 (ns qbits.spex.test.core-test
   (:require
-   [clojure.test :refer :all]
+   [clojure.test :refer [deftest is]]
    [qbits.spex :as sx]
    [clojure.spec.alpha :as s]))
 
